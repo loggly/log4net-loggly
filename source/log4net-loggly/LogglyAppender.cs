@@ -31,7 +31,7 @@ namespace log4net.loggly
 		{
 			LogglyAsync = new LogglyAsyncHandler();
 			Timer.Timer t = new Timer.Timer();
-			t.Interval = 20000;
+			t.Interval = 5000;
 			t.Enabled = true;
 			t.Elapsed += t_Elapsed;
 		}
