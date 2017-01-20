@@ -6,6 +6,7 @@ using log4net.Core;
 using Newtonsoft.Json;
 using System.Dynamic;
 using Newtonsoft.Json.Linq;
+using System.Text;
 
 namespace log4net.loggly
 {
@@ -13,6 +14,7 @@ namespace log4net.loggly
     {
         private Process _currentProcess;
         private ILogglyAppenderConfig _config;
+        public int EVENT_SIZE = 1000 * 1000;
 
         public LogglyFormatter()
         {
@@ -219,6 +221,7 @@ namespace log4net.loggly
         {
             string message = string.Empty;
             objInfo = null;
+            int bytesLengthAllowdToLoggly = EVENT_SIZE;
 
             if (loggingEvent.MessageObject != null)
             {
@@ -228,6 +231,11 @@ namespace log4net.loggly
                         || loggingEvent.MessageObject.GetType().FullName.Contains("StringFormatFormattedMessage"))
                 {
                     message = loggingEvent.MessageObject.ToString();
+                    int messageSizeInBytes = Encoding.Default.GetByteCount(message);
+                    if (messageSizeInBytes > bytesLengthAllowdToLoggly)
+                    {
+                        message = message.Substring(0, bytesLengthAllowdToLoggly);
+                    }
                 }
                 else
                 {
