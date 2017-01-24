@@ -50,7 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ILogglyAppenderConfig.cs" />
-    <Compile Include="ILogglyBufferedLogs.cs" />
     <Compile Include="ILogglyClient.cs" />
     <Compile Include="LogglyAppenderConfig.cs" />
     <Compile Include="LogglyAsyncHandler.cs" />

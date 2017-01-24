@@ -24,6 +24,7 @@ namespace log4net.loggly
         public string Tag { set { Config.Tag = value; } }
         public string LogicalThreadContextKeys { set { Config.LogicalThreadContextKeys = value; } }
         public string GlobalContextKeys { set { Config.GlobalContextKeys = value; } }
+        public int BufferSize { set { Config.BufferSize = value; } }
 
         private LogglyAsyncHandler LogglyAsync;
 
