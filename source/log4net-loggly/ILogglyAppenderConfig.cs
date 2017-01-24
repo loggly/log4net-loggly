@@ -10,6 +10,6 @@ namespace log4net.loggly
 		string Tag { get; set; }
 		string LogicalThreadContextKeys { get; set; }
 		string GlobalContextKeys { get; set; }
-        int BufferSize { get; set; }
+		int BufferSize { get; set; }
 	}
 }

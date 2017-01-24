@@ -18,7 +18,7 @@ namespace log4net.loggly
 		public string LogMode { set { Config.LogMode = value; } }
 		public int TimeoutInSeconds { set { Config.TimeoutInSeconds = value; } }
 		public string Tag { set { Config.Tag = value; } }
-        public int BufferSize { set { Config.BufferSize = value; } }
+		public int BufferSize { set { Config.BufferSize = value; } }
 
 		protected override void Append(LoggingEvent loggingEvent)
 		{
