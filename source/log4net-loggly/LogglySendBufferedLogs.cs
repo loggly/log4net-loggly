@@ -40,7 +40,7 @@ namespace log4net.loggly
 						var response = (HttpWebResponse)e.Response;
 						if (response != null && response.StatusCode == HttpStatusCode.Forbidden)
 						{
-							LogglyClient.setValidInvalidFlag(false);
+							LogglyClient.setTokenValid(false);
 							Console.WriteLine("Loggly error: {0}", e.Message);
 							return;
 						}

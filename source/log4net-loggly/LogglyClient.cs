@@ -9,9 +9,29 @@ namespace log4net.loggly
 	public class LogglyClient : ILogglyClient
 	{
 		static bool isValidToken = true;
-		public static void setValidInvalidFlag(bool flag)
+
+		public static void setTokenValid(bool flag) 
 		{
-		   isValidToken = flag;
+		   isValidToken = flag;       
+		}
+
+		void storeLogs(string message, ILogglyAppenderConfig config, bool isBulk) 
+		{
+			List<string> messageBulk = new List<string>();
+			if (isBulk)
+				{
+					messageBulk = message.Split('\n').ToList();
+					LogglyStoreLogsInBuffer.storeBulkLogs(config, messageBulk, isBulk);
+				}
+				else
+				{
+					LogglyStoreLogsInBuffer.storeInputLogs(config, message, isBulk);
+				}
+		}
+
+		void printErrorMessage(string message) 
+		{
+			Console.WriteLine("Loggly error: {0}", message);
 		}
 
 		public virtual void Send(ILogglyAppenderConfig config, string message)
@@ -22,7 +42,6 @@ namespace log4net.loggly
 			string _tag = config.Tag;
 			bool isBulk = config.LogMode.Contains("bulk");
 
-			List<string> messageBulk = new List<string>();
 			//keeping userAgent backward compatible
 			if (!string.IsNullOrWhiteSpace(config.UserAgent))
 			{
@@ -43,33 +62,35 @@ namespace log4net.loggly
 							dataStream.Flush();
 							dataStream.Close();
 						}
-
 						var webResponse = webRequest.GetResponse();
 						webResponse.Close();
 						break;                    
 				}
 
-				catch (WebException e) {
-					var response = (HttpWebResponse)e.Response;
-					if (response != null) 
+				catch (WebException e)
+				{
+					if (totalRetries == 1)
 					{
-						if (response.StatusCode == HttpStatusCode.Forbidden)  //Check for bad token
+						var response = (HttpWebResponse)e.Response;
+						if (response != null)
 						{
-							setValidInvalidFlag(false);
-						}
-						if (totalRetries == 1) Console.WriteLine("Loggly error: {0}", e.Message);
-					}
-
-					else if (totalRetries == 1)
-					{
-						if (isBulk)
-						{
-							messageBulk = message.Split('\n').ToList();
-							LogglyStoreLogsInBuffer.storeBulkLogs(config, messageBulk, isBulk);
+							// Check for bad token
+							if (response.StatusCode == HttpStatusCode.Forbidden)
+							{
+								// set valid token flag to false
+								setTokenValid(false);
+							}
+							else
+							{
+								// store logs to buffer
+								storeLogs(message, config, isBulk);
+							}
+							printErrorMessage(e.Message);
 						}
 						else
 						{
-							LogglyStoreLogsInBuffer.storeInputLogs(config, message, isBulk);
+							// store logs to buffer
+							storeLogs(message, config, isBulk);
 						}
 					}
 				}
