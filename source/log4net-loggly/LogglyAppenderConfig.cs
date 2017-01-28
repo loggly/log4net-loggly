@@ -43,6 +43,7 @@ namespace log4net.loggly
 
 		public string GlobalContextKeys { get; set; }
 
+		public int BufferSize { get; set; }
 		public LogglyAppenderConfig()
 		{
 			UserAgent = "loggly-log4net-appender";
@@ -51,6 +52,7 @@ namespace log4net.loggly
 			LogMode = "bulk";
 			LogicalThreadContextKeys = null;
 			GlobalContextKeys = null;
+			BufferSize = 500;
 		}
 	}
 }
