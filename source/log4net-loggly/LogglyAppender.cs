@@ -8,14 +8,14 @@ using Timer = System.Timers;
 
 namespace log4net.loggly
 {
-    public class LogglyAppender : AppenderSkeleton
+	public class LogglyAppender : AppenderSkeleton
 	{
 		List<string> lstLogs = new List<string>();
 		string[] arr = new string[100];
 		public readonly string InputKeyProperty = "LogglyInputKey";
 		public ILogglyFormatter Formatter = new LogglyFormatter();
 		public ILogglyClient Client = new LogglyClient();
-        public LogglySendBufferedLogs _sendBufferedLogs = new LogglySendBufferedLogs();
+		public LogglySendBufferedLogs _sendBufferedLogs = new LogglySendBufferedLogs();
 		private ILogglyAppenderConfig Config = new LogglyAppenderConfig();
 		public string RootUrl { set { Config.RootUrl = value; } }
 		public string InputKey { set { Config.InputKey = value; } }
@@ -43,8 +43,8 @@ namespace log4net.loggly
 			if (lstLogs.Count != 0)
 			{
 				SendAllEvents(lstLogs.ToArray());
-			}           
-		   _sendBufferedLogs.sendBufferedLogsToLoggly(Config, Config.LogMode == "bulk/");
+			}
+			_sendBufferedLogs.sendBufferedLogsToLoggly(Config, Config.LogMode == "bulk/");
 		}
 
 		protected override void Append(LoggingEvent loggingEvent)
@@ -98,7 +98,7 @@ namespace log4net.loggly
 		{
 			lstLogs.Clear();
 			String bulkLog = String.Join(System.Environment.NewLine, events);
-			LogglyAsync.PostMessage(bulkLog, Config); 
+			LogglyAsync.PostMessage(bulkLog, Config);
 		}
 
 		}
