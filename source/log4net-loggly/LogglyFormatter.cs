@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System.Dynamic;
 using Newtonsoft.Json.Linq;
 using System.Text;
+using System.Collections;
 
 namespace log4net.loggly
 {
@@ -73,6 +74,27 @@ namespace log4net.loggly
 			if (_exceptionInfo != null)
 			{
 				_loggingInfo.exception = _exceptionInfo;
+			}
+
+			//handling loggingevent properties
+			if(loggingEvent.Properties.Count > 0)
+			{
+				var properties = (IDictionary<string, object>)_loggingInfo;
+				foreach(DictionaryEntry property in loggingEvent.Properties)
+				{
+					var fixedProperty = property.Value as IFixingRequired;
+					object propertyValue;
+					if(fixedProperty != null && fixedProperty.GetFixedObject() != null)
+					{
+						propertyValue = fixedProperty.GetFixedObject();
+					}
+					else
+					{
+						propertyValue = property.Value;
+					}
+
+					properties[(string)property.Key] = propertyValue;
+				}
 			}
 
 			//handling threadcontext properties
