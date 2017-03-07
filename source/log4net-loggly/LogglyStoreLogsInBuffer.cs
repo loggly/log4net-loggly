@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,7 +6,7 @@ namespace log4net.loggly
 {
 	public class LogglyStoreLogsInBuffer
 	{
-		public List<string> arrBufferedMessage = new List<string>();
+		public static List<string> arrBufferedMessage = new List<string>();
 		
 		public void storeBulkLogs(ILogglyAppenderConfig config, List<string> logs, bool isBulk)
 		{
