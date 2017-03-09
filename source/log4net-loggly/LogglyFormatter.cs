@@ -1,334 +1,351 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using log4net.Core;
-using Newtonsoft.Json;
-using System.Dynamic;
-using Newtonsoft.Json.Linq;
-using System.Text;
-using System.Collections;
-
 namespace log4net.loggly
 {
-	public class LogglyFormatter : ILogglyFormatter
-	{
-		private Process _currentProcess;
-		private ILogglyAppenderConfig _config;
-		public int EVENT_SIZE = 1000 * 1000;
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Dynamic;
+    using System.Linq;
+    using System.Text;
+    using log4net.Core;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
-		public LogglyFormatter()
-		{
-			_currentProcess = Process.GetCurrentProcess();
-		}
+    public class LogglyFormatter : ILogglyFormatter
+    {
+        private readonly Process _currentProcess;
 
-		public virtual void AppendAdditionalLoggingInformation(ILogglyAppenderConfig config, LoggingEvent loggingEvent)
-		{
-			this._config = config;
-		}
+        public int EVENT_SIZE = 1000 * 1000;
 
-		public virtual string ToJson(LoggingEvent loggingEvent)
-		{
-			return PreParse(loggingEvent);
-		}
+        public LogglyFormatter()
+        {
+            _currentProcess = Process.GetCurrentProcess();
+        }
 
-		public virtual string ToJson(IEnumerable<LoggingEvent> loggingEvents)
-		{
-			return JsonConvert.SerializeObject(loggingEvents.Select(PreParse),new JsonSerializerSettings(){
-				ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-			});
-		}
+        internal ILogglyAppenderConfig Config { private get; set; }
 
-		public virtual string ToJson(string renderedLog, DateTime timeStamp)
-		{
-			return ParseRenderedLog(renderedLog, timeStamp);
-		}
+        public virtual void AppendAdditionalLoggingInformation(ILogglyAppenderConfig config, LoggingEvent loggingEvent)
+        {
+            Config = config;
+        }
 
-		/// <summary>
-		/// Formats the log event to various JSON fields that are to be shown in Loggly.
-		/// </summary>
-		/// <param name="loggingEvent"></param>
-		/// <returns></returns>
-		private string PreParse(LoggingEvent loggingEvent)
-		{
-			//formating base logging info
-			dynamic _loggingInfo = new ExpandoObject();
-			_loggingInfo.timestamp = loggingEvent.TimeStamp.ToString(@"yyyy-MM-ddTHH\:mm\:ss.fffzzz");
-			_loggingInfo.level = loggingEvent.Level.DisplayName;
-			_loggingInfo.hostName = Environment.MachineName;
-			_loggingInfo.process = _currentProcess.ProcessName;
-			_loggingInfo.threadName = loggingEvent.ThreadName;
-			_loggingInfo.loggerName = loggingEvent.LoggerName;
+        public virtual string ToJson(LoggingEvent loggingEvent)
+        {
+            return PreParse(loggingEvent);
+        }
 
-			//handling messages
-			object _loggedObject = null;
-			string _message = GetMessageAndObjectInfo(loggingEvent, out _loggedObject);
+        public virtual string ToJson(IEnumerable<LoggingEvent> loggingEvents)
+        {
+            return JsonConvert.SerializeObject(
+                loggingEvents.Select(PreParse),
+                new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
+        }
 
-			if (_message != string.Empty)
-			{
-				_loggingInfo.message = _message;
-			}
+        public virtual string ToJson(string renderedLog, DateTime timeStamp)
+        {
+            return ParseRenderedLog(renderedLog, timeStamp);
+        }
 
-			//handling exceptions
-			dynamic _exceptionInfo = GetExceptionInfo(loggingEvent);
-			if (_exceptionInfo != null)
-			{
-				_loggingInfo.exception = _exceptionInfo;
-			}
+        /// <summary>
+        /// Returns the exception information. Also takes care of the InnerException.
+        /// </summary>
+        /// <param name="loggingEvent"></param>
+        /// <returns></returns>
+        private object GetExceptionInfo(LoggingEvent loggingEvent)
+        {
+            if (loggingEvent.ExceptionObject == null)
+            {
+                return null;
+            }
 
-			//handling loggingevent properties
-			if(loggingEvent.Properties.Count > 0)
-			{
-				var properties = (IDictionary<string, object>)_loggingInfo;
-				foreach(DictionaryEntry property in loggingEvent.Properties)
-				{
-					var fixedProperty = property.Value as IFixingRequired;
-					object propertyValue;
-					if(fixedProperty != null && fixedProperty.GetFixedObject() != null)
-					{
-						propertyValue = fixedProperty.GetFixedObject();
-					}
-					else
-					{
-						propertyValue = property.Value;
-					}
+            dynamic exceptionInfo = new ExpandoObject();
+            exceptionInfo.exceptionType = loggingEvent.ExceptionObject.GetType().FullName;
+            exceptionInfo.exceptionMessage = loggingEvent.ExceptionObject.Message;
+            exceptionInfo.stacktrace = loggingEvent.ExceptionObject.StackTrace;
 
-					properties[(string)property.Key] = propertyValue;
-				}
-			}
+            //most of the times dotnet exceptions contain important messages in the inner exceptions
+            if (loggingEvent.ExceptionObject.InnerException != null)
+            {
+                dynamic innerException = new
+                {
+                    innerExceptionType = loggingEvent.ExceptionObject.InnerException.GetType().FullName,
+                    innerExceptionMessage = loggingEvent.ExceptionObject.InnerException.Message,
+                    innerStacktrace = loggingEvent.ExceptionObject.InnerException.StackTrace
+                };
+                exceptionInfo.innerException = innerException;
+            }
 
-			//handling threadcontext properties
-			string[] _threadContextProperties = ThreadContext.Properties.GetKeys();
-			if (_threadContextProperties != null && _threadContextProperties.Any())
-			{
-				var p = _loggingInfo as IDictionary<string, object>;
-				foreach (string key in _threadContextProperties)
-				{
-					if ((ThreadContext.Properties[key] as IFixingRequired) != null
-						&& (ThreadContext.Properties[key] as IFixingRequired).GetFixedObject() != null)
-					{
-						p[key] = (ThreadContext.Properties[key] as IFixingRequired).GetFixedObject();
-					}
-					else
-					{
-						p[key] = ThreadContext.Properties[key].ToString();
-					}
-				}
-			}
+            return exceptionInfo;
+        }
 
-			//handling logicalthreadcontext properties
-			if (this._config.LogicalThreadContextKeys != null)
-			{
-				var ltp = _loggingInfo as IDictionary<string, object>;
-				string[] _LogicalThreadContextProperties = this._config.LogicalThreadContextKeys.Split(',');
-				foreach (string key in _LogicalThreadContextProperties)
-				{
-					if (LogicalThreadContext.Properties[key] != null)
-					{
-						if ((LogicalThreadContext.Properties[key] as IFixingRequired) != null
-							&& (LogicalThreadContext.Properties[key] as IFixingRequired).GetFixedObject() != null)
-						{
-							ltp[key] = (LogicalThreadContext.Properties[key] as IFixingRequired).GetFixedObject();
-						}
-						else
-						{
-							ltp[key] = LogicalThreadContext.Properties[key].ToString();
-						}
-					}
-				}
-			}
+        /// <summary>
+        /// Returns a string type message if it is not a custom object,
+        /// otherwise returns custom object details
+        /// </summary>
+        /// <param name="loggingEvent"></param>
+        /// <param name="objInfo"></param>
+        /// <returns></returns>
+        private string GetMessageAndObjectInfo(LoggingEvent loggingEvent, out object objInfo)
+        {
+            var message = string.Empty;
+            objInfo = null;
+            var bytesLengthAllowdToLoggly = EVENT_SIZE;
 
-			//handling globalcontext properties
-			if (this._config.GlobalContextKeys != null)
-			{
-				var gcp = _loggingInfo as IDictionary<string, object>;
-				string[] _globalContextProperties = this._config.GlobalContextKeys.Split(',');
-				foreach (string key in _globalContextProperties)
-				{
-					if (GlobalContext.Properties[key] != null)
-					{
-						if ((GlobalContext.Properties[key] as IFixingRequired) != null
-							&& (GlobalContext.Properties[key] as IFixingRequired).GetFixedObject() != null)
-						{
-							gcp[key] = (GlobalContext.Properties[key] as IFixingRequired).GetFixedObject();
-						}
-						else
-						{
-							gcp[key] = GlobalContext.Properties[key].ToString();
-						}
-					}
-				}
-			}
+            if (loggingEvent.MessageObject != null)
+            {
+                if (loggingEvent.MessageObject is string
+                    //if it is sent by using InfoFormat method then treat it as a string message
+                    || loggingEvent.MessageObject.GetType().FullName == "log4net.Util.SystemStringFormat"
+                    || loggingEvent.MessageObject.GetType().FullName.Contains("StringFormatFormattedMessage"))
+                {
+                    message = loggingEvent.MessageObject.ToString();
+                    var messageSizeInBytes = Encoding.Default.GetByteCount(message);
+                    if (messageSizeInBytes > bytesLengthAllowdToLoggly)
+                    {
+                        message = message.Substring(0, bytesLengthAllowdToLoggly);
+                    }
+                }
+                else
+                {
+                    objInfo = loggingEvent.MessageObject;
+                }
+            }
+            else
+            {
+                //adding message as null so that the Loggly user
+                //can know that a null object is logged.
+                message = "null";
+            }
+            return message;
+        }
 
-			string jsonMessage = string.Empty;
-			if (TryGetParsedJsonFromLog(_loggingInfo, _loggedObject, out jsonMessage))
-			{
-				return jsonMessage;
-			}
-			else
-			{
-				//converting event info to Json string
-				return JsonConvert.SerializeObject(_loggingInfo,
-				new JsonSerializerSettings()
-				{
-					ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-				});
-			}
-		}
+        /// <summary>
+        /// Merged Rendered log and formatted timestamp in the single Json object
+        /// </summary>
+        /// <param name="log"></param>
+        /// <param name="timeStamp"></param>
+        /// <returns></returns>
+        private string ParseRenderedLog(string log, DateTime timeStamp)
+        {
+            dynamic loggingInfo = new ExpandoObject();
+            loggingInfo.timestamp = timeStamp.ToString(@"yyyy-MM-ddTHH\:mm\:ss.fffzzz");
 
-		/// <summary>
-		/// Merged Rendered log and formatted timestamp in the single Json object
-		/// </summary>
-		/// <param name="log"></param>
-		/// <param name="timeStamp"></param>
-		/// <returns></returns>
-		private string ParseRenderedLog(string log, DateTime timeStamp)
-		{
-			dynamic _loggingInfo = new ExpandoObject();
-			_loggingInfo.timestamp = timeStamp.ToString(@"yyyy-MM-ddTHH\:mm\:ss.fffzzz");
+            string jsonMessage;
+            if (TryGetParsedJsonFromLog(loggingInfo, log, out jsonMessage))
+            {
+                return jsonMessage;
+            }
 
-			string jsonMessage = string.Empty;
-			if (TryGetParsedJsonFromLog(_loggingInfo, log, out jsonMessage))
-			{
-				return jsonMessage;
-			}
-			else
-			{
-				_loggingInfo.message = log;
-				return JsonConvert.SerializeObject(_loggingInfo,
-					new JsonSerializerSettings()
-					{
-						PreserveReferencesHandling = PreserveReferencesHandling.Arrays,
-						ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-					});
-			}
-		}
+            loggingInfo.message = log;
+            return JsonConvert.SerializeObject(
+                loggingInfo,
+                new JsonSerializerSettings
+                {
+                    PreserveReferencesHandling = PreserveReferencesHandling.Arrays,
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                });
+        }
 
-		/// <summary>
-		/// Returns the exception information. Also takes care of the InnerException.  
-		/// </summary>
-		/// <param name="loggingEvent"></param>
-		/// <returns></returns>
-		private object GetExceptionInfo(LoggingEvent loggingEvent)
-		{
-			if (loggingEvent.ExceptionObject == null)
-			return null;
+        /// <summary>
+        /// Formats the log event to various JSON fields that are to be shown in Loggly.
+        /// </summary>
+        /// <param name="loggingEvent"></param>
+        /// <returns></returns>
+        private string PreParse(LoggingEvent loggingEvent)
+        {
+            //formating base logging info
+            dynamic loggingInfo = new ExpandoObject();
+            loggingInfo.timestamp = loggingEvent.TimeStamp.ToString(@"yyyy-MM-ddTHH\:mm\:ss.fffzzz");
+            loggingInfo.level = loggingEvent.Level.DisplayName;
+            loggingInfo.hostName = Environment.MachineName;
+            loggingInfo.process = _currentProcess.ProcessName;
+            loggingInfo.threadName = loggingEvent.ThreadName;
+            loggingInfo.loggerName = loggingEvent.LoggerName;
 
-			dynamic exceptionInfo = new ExpandoObject();
-			exceptionInfo.exceptionType = loggingEvent.ExceptionObject.GetType().FullName;
-			exceptionInfo.exceptionMessage = loggingEvent.ExceptionObject.Message;
-			exceptionInfo.stacktrace = loggingEvent.ExceptionObject.StackTrace;
+            //handling messages
+            object loggedObject;
+            var message = GetMessageAndObjectInfo(loggingEvent, out loggedObject);
 
-			//most of the times dotnet exceptions contain important messages in the inner exceptions
-			if (loggingEvent.ExceptionObject.InnerException != null)
-			{
-				dynamic innerException = new
-				{
-					innerExceptionType = loggingEvent.ExceptionObject.InnerException.GetType().FullName,
-					innerExceptionMessage = loggingEvent.ExceptionObject.InnerException.Message,
-					innerStacktrace = loggingEvent.ExceptionObject.InnerException.StackTrace
-				};
-				exceptionInfo.innerException = innerException;
-			}
-			return exceptionInfo;
-		}
+            if (message != string.Empty)
+            {
+                loggingInfo.message = message;
+            }
 
-		/// <summary>
-		/// Returns a string type message if it is not a custom object,
-		/// otherwise returns custom object details
-		/// </summary>
-		/// <param name="loggingEvent"></param>
-		/// <returns></returns>
-		private string GetMessageAndObjectInfo(LoggingEvent loggingEvent, out object objInfo)
-		{
-			string message = string.Empty;
-			objInfo = null;
-			int bytesLengthAllowdToLoggly = EVENT_SIZE;
+            //handling exceptions
+            dynamic exceptionInfo = GetExceptionInfo(loggingEvent);
+            if (exceptionInfo != null)
+            {
+                loggingInfo.exception = exceptionInfo;
+            }
 
-			if (loggingEvent.MessageObject != null)
-			{
-				if (loggingEvent.MessageObject.GetType() == typeof(string)
-						//if it is sent by using InfoFormat method then treat it as a string message
-						|| loggingEvent.MessageObject.GetType().FullName == "log4net.Util.SystemStringFormat"
-						|| loggingEvent.MessageObject.GetType().FullName.Contains("StringFormatFormattedMessage"))
-				{
-					message = loggingEvent.MessageObject.ToString();
-					int messageSizeInBytes = Encoding.Default.GetByteCount(message);
-					if (messageSizeInBytes > bytesLengthAllowdToLoggly)
-					{
-						message = message.Substring(0, bytesLengthAllowdToLoggly);
-					}
-				}
-				else
-				{
-					objInfo = loggingEvent.MessageObject;
-				}
-			}
-			else
-			{
-				//adding message as null so that the Loggly user
-				//can know that a null object is logged.
-				message = "null";
-			}
-			return message;
-		}
+            //handling loggingevent properties
+            if (loggingEvent.Properties.Count > 0)
+            {
+                var properties = (IDictionary<string, object>)loggingInfo;
+                foreach (DictionaryEntry property in loggingEvent.Properties)
+                {
+                    var fixedProperty = property.Value as IFixingRequired;
+                    object propertyValue;
+                    if (fixedProperty != null && fixedProperty.GetFixedObject() != null)
+                    {
+                        propertyValue = fixedProperty.GetFixedObject();
+                    }
+                    else
+                    {
+                        propertyValue = property.Value;
+                    }
 
-		/// <summary>
-		/// Tries to merge log with the logged object or rendered log
-		/// and converts to JSON
-		/// </summary>
-		/// <param name="loggingInfo"></param>
-		/// <param name="loggingObject"></param>
-		/// <param name="_loggingEventJSON"></param>
-		/// <returns></returns>
-		private bool TryGetParsedJsonFromLog(dynamic loggingInfo, object loggingObject, out string _loggingEventJSON)
-		{
-			//serialize the dynamic object to string
-			_loggingEventJSON = JsonConvert.SerializeObject(loggingInfo,
-			new JsonSerializerSettings()
-			{
-				ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-			}); 
-			
-			//if loggingObject is null then we need to go to further step
-			if (loggingObject == null)
-				return false;
-			
-			try
-			{
-				string _loggedObjectJSON = string.Empty;
-				if (loggingObject.GetType() == typeof(string))
-				{
-					_loggedObjectJSON = loggingObject.ToString();
-				}
-				else
-				{
-					_loggedObjectJSON = JsonConvert.SerializeObject(loggingObject,
-						new JsonSerializerSettings()
-						{
-							PreserveReferencesHandling = PreserveReferencesHandling.Arrays,
-							ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-						});
-				}
+                    properties[(string)property.Key] = propertyValue;
+                }
+            }
 
-				//try to parse the logging object
-				JObject jObject = JObject.Parse(_loggedObjectJSON);
-				JObject jEvent = JObject.Parse(_loggingEventJSON);
+            //handling threadcontext properties
+            var threadContextProperties = ThreadContext.Properties.GetKeys();
+            if (threadContextProperties != null && threadContextProperties.Any())
+            {
+                var p = (IDictionary<string, object>)loggingInfo;
+                foreach (var key in threadContextProperties)
+                {
+                    var fixingRequired = ThreadContext.Properties[key] as IFixingRequired;
+                    if (fixingRequired != null && fixingRequired.GetFixedObject() != null)
+                    {
+                        p[key] = fixingRequired.GetFixedObject();
+                    }
+                    else
+                    {
+                        p[key] = ThreadContext.Properties[key].ToString();
+                    }
+                }
+            }
 
-				//merge these two objects into one JSON string
-				jEvent.Merge(jObject, new JsonMergeSettings
-				{
-					MergeArrayHandling = MergeArrayHandling.Union
-				});
+            //handling logicalthreadcontext properties
+            if (Config.LogicalThreadContextKeys != null)
+            {
+                var ltp = (IDictionary<string, object>)loggingInfo;
+                var logicalThreadContextProperties = Config.LogicalThreadContextKeys.Split(',');
+                foreach (var key in logicalThreadContextProperties)
+                {
+                    if (LogicalThreadContext.Properties[key] == null)
+                    {
+                        continue;
+                    }
 
-				_loggingEventJSON = jEvent.ToString();
-				
-				return true;
-			}
-			catch
-			{
-				return false;
-			}
-		}
-	}
+                    var fixingRequired = LogicalThreadContext.Properties[key] as IFixingRequired;
+                    if (fixingRequired != null && fixingRequired.GetFixedObject() != null)
+                    {
+                        ltp[key] = fixingRequired.GetFixedObject();
+                    }
+                    else
+                    {
+                        ltp[key] = LogicalThreadContext.Properties[key].ToString();
+                    }
+                }
+            }
+
+            //handling globalcontext properties
+            if (Config.GlobalContextKeys != null)
+            {
+                var gcp = (IDictionary<string, object>)loggingInfo;
+                var globalContextProperties = Config.GlobalContextKeys.Split(',');
+                foreach (var key in globalContextProperties)
+                {
+                    if (GlobalContext.Properties[key] == null)
+                    {
+                        continue;
+                    }
+
+                    var fixingRequired = GlobalContext.Properties[key] as IFixingRequired;
+                    if (fixingRequired != null && fixingRequired.GetFixedObject() != null)
+                    {
+                        gcp[key] = fixingRequired.GetFixedObject();
+                    }
+                    else
+                    {
+                        gcp[key] = GlobalContext.Properties[key].ToString();
+                    }
+                }
+            }
+
+            string jsonMessage;
+            if (TryGetParsedJsonFromLog(loggingInfo, loggedObject, out jsonMessage))
+            {
+                return jsonMessage;
+            }
+
+            //converting event info to Json string
+            return JsonConvert.SerializeObject(
+                loggingInfo,
+                new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                });
+        }
+
+        /// <summary>
+        /// Tries to merge log with the logged object or rendered log
+        /// and converts to JSON
+        /// </summary>
+        /// <param name="loggingInfo"></param>
+        /// <param name="loggingObject"></param>
+        /// <param name="loggingEventJson"></param>
+        /// <returns></returns>
+        private bool TryGetParsedJsonFromLog(dynamic loggingInfo, object loggingObject, out string loggingEventJson)
+        {
+            //serialize the dynamic object to string
+            loggingEventJson = JsonConvert.SerializeObject(
+                loggingInfo,
+                new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                });
+
+            //if loggingObject is null then we need to go to further step
+            if (loggingObject == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                string loggedObjectJson;
+                if (loggingObject is string)
+                {
+                    loggedObjectJson = loggingObject.ToString();
+                }
+                else
+                {
+                    loggedObjectJson = JsonConvert.SerializeObject(
+                        loggingObject,
+                        new JsonSerializerSettings
+                        {
+                            PreserveReferencesHandling = PreserveReferencesHandling.Arrays,
+                            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                        });
+                }
+
+                //try to parse the logging object
+                var jObject = JObject.Parse(loggedObjectJson);
+                var jEvent = JObject.Parse(loggingEventJson);
+
+                //merge these two objects into one JSON string
+                jEvent.Merge(
+                    jObject,
+                    new JsonMergeSettings
+                    {
+                        MergeArrayHandling = MergeArrayHandling.Union
+                    });
+
+                loggingEventJson = jEvent.ToString();
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
 }
