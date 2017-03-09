@@ -1,0 +1,6 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/InjectedLayers/FileInjectedLayer/=C9D0BF25E1290443BEAF955612AC0BF5/AbsolutePath/@EntryValue">C:\Projects\Forks\log4net-loggly\source\ReSharperTeamShared.DotSettings</s:String>
+	<s:String x:Key="/Default/Environment/InjectedLayers/FileInjectedLayer/=C9D0BF25E1290443BEAF955612AC0BF5/RelativePath/@EntryValue">..\ReSharperTeamShared.DotSettings</s:String>
+	<s:Boolean x:Key="/Default/Environment/InjectedLayers/FileInjectedLayer/=C9D0BF25E1290443BEAF955612AC0BF5/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/Environment/InjectedLayers/InjectedLayerCustomization/=FileC9D0BF25E1290443BEAF955612AC0BF5/@KeyIndexDefined">True</s:Boolean>
+	<s:Double x:Key="/Default/Environment/InjectedLayers/InjectedLayerCustomization/=FileC9D0BF25E1290443BEAF955612AC0BF5/RelativePriority/@EntryValue">1</s:Double></wpf:ResourceDictionary>
