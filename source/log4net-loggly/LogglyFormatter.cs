@@ -22,7 +22,7 @@ namespace log4net.loggly
             _currentProcess = Process.GetCurrentProcess();
         }
 
-        internal ILogglyAppenderConfig Config { private get; set; }
+        public ILogglyAppenderConfig Config { get; set; }
 
         public virtual void AppendAdditionalLoggingInformation(ILogglyAppenderConfig config, LoggingEvent loggingEvent)
         {
