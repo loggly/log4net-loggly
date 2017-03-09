@@ -49,6 +49,21 @@ namespace log4net.loggly
             return ParseRenderedLog(renderedLog, timeStamp);
         }
 
+        private static bool TryGetPropertyValue(object property, out object propertyValue)
+        {
+            var fixedProperty = property as IFixingRequired;
+            if (fixedProperty != null && fixedProperty.GetFixedObject() != null)
+            {
+                propertyValue = fixedProperty.GetFixedObject();
+            }
+            else
+            {
+                propertyValue = property;
+            }
+
+            return propertyValue != null;
+        }
+
         /// <summary>
         /// Returns the exception information. Also takes care of the InnerException.
         /// </summary>
@@ -92,7 +107,7 @@ namespace log4net.loggly
         {
             var message = string.Empty;
             objInfo = null;
-            var bytesLengthAllowdToLoggly = EVENT_SIZE;
+            var bytesLengthAllowedToLoggly = EVENT_SIZE;
 
             if (loggingEvent.MessageObject != null)
             {
@@ -103,9 +118,9 @@ namespace log4net.loggly
                 {
                     message = loggingEvent.MessageObject.ToString();
                     var messageSizeInBytes = Encoding.Default.GetByteCount(message);
-                    if (messageSizeInBytes > bytesLengthAllowdToLoggly)
+                    if (messageSizeInBytes > bytesLengthAllowedToLoggly)
                     {
-                        message = message.Substring(0, bytesLengthAllowdToLoggly);
+                        message = message.Substring(0, bytesLengthAllowedToLoggly);
                     }
                 }
                 else
@@ -181,24 +196,18 @@ namespace log4net.loggly
                 loggingInfo.exception = exceptionInfo;
             }
 
+            var properties = (IDictionary<string, object>) loggingInfo;
+
             //handling loggingevent properties
             if (loggingEvent.Properties.Count > 0)
             {
-                var properties = (IDictionary<string, object>)loggingInfo;
                 foreach (DictionaryEntry property in loggingEvent.Properties)
                 {
-                    var fixedProperty = property.Value as IFixingRequired;
                     object propertyValue;
-                    if (fixedProperty != null && fixedProperty.GetFixedObject() != null)
+                    if (TryGetPropertyValue(property.Value, out propertyValue))
                     {
-                        propertyValue = fixedProperty.GetFixedObject();
+                        properties[(string) property.Key] = propertyValue;
                     }
-                    else
-                    {
-                        propertyValue = property.Value;
-                    }
-
-                    properties[(string)property.Key] = propertyValue;
                 }
             }
 
@@ -206,17 +215,12 @@ namespace log4net.loggly
             var threadContextProperties = ThreadContext.Properties.GetKeys();
             if (threadContextProperties != null && threadContextProperties.Any())
             {
-                var p = (IDictionary<string, object>)loggingInfo;
                 foreach (var key in threadContextProperties)
                 {
-                    var fixingRequired = ThreadContext.Properties[key] as IFixingRequired;
-                    if (fixingRequired != null && fixingRequired.GetFixedObject() != null)
+                    object propertyValue;
+                    if (TryGetPropertyValue(ThreadContext.Properties[key], out propertyValue))
                     {
-                        p[key] = fixingRequired.GetFixedObject();
-                    }
-                    else
-                    {
-                        p[key] = ThreadContext.Properties[key].ToString();
+                        properties[key] = propertyValue;
                     }
                 }
             }
@@ -224,23 +228,13 @@ namespace log4net.loggly
             //handling logicalthreadcontext properties
             if (Config.LogicalThreadContextKeys != null)
             {
-                var ltp = (IDictionary<string, object>)loggingInfo;
                 var logicalThreadContextProperties = Config.LogicalThreadContextKeys.Split(',');
                 foreach (var key in logicalThreadContextProperties)
                 {
-                    if (LogicalThreadContext.Properties[key] == null)
+                    object propertyValue;
+                    if (TryGetPropertyValue(LogicalThreadContext.Properties[key], out propertyValue))
                     {
-                        continue;
-                    }
-
-                    var fixingRequired = LogicalThreadContext.Properties[key] as IFixingRequired;
-                    if (fixingRequired != null && fixingRequired.GetFixedObject() != null)
-                    {
-                        ltp[key] = fixingRequired.GetFixedObject();
-                    }
-                    else
-                    {
-                        ltp[key] = LogicalThreadContext.Properties[key].ToString();
+                        properties[key] = propertyValue;
                     }
                 }
             }
@@ -248,23 +242,13 @@ namespace log4net.loggly
             //handling globalcontext properties
             if (Config.GlobalContextKeys != null)
             {
-                var gcp = (IDictionary<string, object>)loggingInfo;
                 var globalContextProperties = Config.GlobalContextKeys.Split(',');
                 foreach (var key in globalContextProperties)
                 {
-                    if (GlobalContext.Properties[key] == null)
+                    object propertyValue;
+                    if (TryGetPropertyValue(GlobalContext.Properties[key], out propertyValue))
                     {
-                        continue;
-                    }
-
-                    var fixingRequired = GlobalContext.Properties[key] as IFixingRequired;
-                    if (fixingRequired != null && fixingRequired.GetFixedObject() != null)
-                    {
-                        gcp[key] = fixingRequired.GetFixedObject();
-                    }
-                    else
-                    {
-                        gcp[key] = GlobalContext.Properties[key].ToString();
+                        properties[key] = propertyValue;
                     }
                 }
             }
