@@ -11,9 +11,9 @@ namespace log4net.loggly
 
 		protected bool IsRunning = false;
 		//static list of all the queues the le appender might be managing.
-		private static ConcurrentBag<BlockingCollection<string>> _allQueues = new ConcurrentBag<BlockingCollection<string>>();
+		private ConcurrentBag<BlockingCollection<string>> _allQueues = new ConcurrentBag<BlockingCollection<string>>();
 
-		public static ILogglyClient Client = new LogglyClient();
+		public ILogglyClient Client = new LogglyClient();
 		public LogglyAsyncHandler()
 		{
 			Queue = new BlockingCollection<string>();

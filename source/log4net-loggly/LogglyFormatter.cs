@@ -221,7 +221,7 @@ namespace log4net.loggly
 		{
 			string message = string.Empty;
 			objInfo = null;
-			int bytesLengthAllowdToLoggly = EVENT_SIZE;
+			int bytesLengthAllowedToLoggly = EVENT_SIZE;
 
 			if (loggingEvent.MessageObject != null)
 			{
@@ -232,9 +232,9 @@ namespace log4net.loggly
 				{
 					message = loggingEvent.MessageObject.ToString();
 					int messageSizeInBytes = Encoding.Default.GetByteCount(message);
-					if (messageSizeInBytes > bytesLengthAllowdToLoggly)
+					if (messageSizeInBytes > bytesLengthAllowedToLoggly)
 					{
-						message = message.Substring(0, bytesLengthAllowdToLoggly);
+						message = message.Substring(0, bytesLengthAllowedToLoggly);
 					}
 				}
 				else
