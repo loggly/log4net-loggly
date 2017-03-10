@@ -8,24 +8,25 @@ namespace log4net.loggly
 {
 	public class LogglyClient : ILogglyClient
 	{
-		static bool isValidToken = true;
+		bool isValidToken = true;
+		public LogglyStoreLogsInBuffer _storeLogsInBuffer = new LogglyStoreLogsInBuffer();
 
-		public static void setTokenValid(bool flag) 
+		public void setTokenValid(bool flag) 
 		{
 		   isValidToken = flag;       
 		}
 
-		void storeLogs(string message, ILogglyAppenderConfig config, bool isBulk) 
+		public void storeLogs(string message, ILogglyAppenderConfig config, bool isBulk) 
 		{
 			List<string> messageBulk = new List<string>();
 			if (isBulk)
 				{
 					messageBulk = message.Split('\n').ToList();
-					LogglyStoreLogsInBuffer.storeBulkLogs(config, messageBulk, isBulk);
+					_storeLogsInBuffer.storeBulkLogs(config, messageBulk, isBulk);
 				}
 				else
 				{
-					LogglyStoreLogsInBuffer.storeInputLogs(config, message, isBulk);
+					_storeLogsInBuffer.storeInputLogs(config, message, isBulk);
 				}
 		}
 
@@ -42,6 +43,9 @@ namespace log4net.loggly
 			string _tag = config.Tag;
 			bool isBulk = config.LogMode.Contains("bulk");
 
+			HttpWebResponse webResponse;
+			HttpWebRequest webRequest;
+
 			//keeping userAgent backward compatible
 			if (!string.IsNullOrWhiteSpace(config.UserAgent))
 			{
@@ -54,17 +58,17 @@ namespace log4net.loggly
 				try
 				{
 					var bytes = Encoding.UTF8.GetBytes(message);
-					var webRequest = CreateWebRequest(config, _tag);  
-					
-						using (var dataStream = webRequest.GetRequestStream())
-						{
-							dataStream.Write(bytes, 0, bytes.Length);
-							dataStream.Flush();
-							dataStream.Close();
-						}
-						var webResponse = webRequest.GetResponse();
-						webResponse.Close();
-						break;                    
+					webRequest = CreateWebRequest(config, _tag);
+
+					using (var dataStream = webRequest.GetRequestStream())
+					{
+						dataStream.Write(bytes, 0, bytes.Length);
+						dataStream.Flush();
+						dataStream.Close();
+					}
+					webResponse = (HttpWebResponse)webRequest.GetResponse();
+					webResponse.Close();  
+					break;
 				}
 
 				catch (WebException e)
@@ -93,6 +97,13 @@ namespace log4net.loggly
 							storeLogs(message, config, isBulk);
 						}
 					}
+				}
+
+				finally
+				{
+					webRequest = null;
+					webResponse = null;
+					GC.Collect();
 				}
 			 }
 		 }
@@ -127,7 +138,8 @@ namespace log4net.loggly
 			var url = String.Concat(config.RootUrl, config.LogMode, config.InputKey);
 				//adding userAgent as tag in the log
 				url = String.Concat(url, "/tag/" + tag);
-			var request = (HttpWebRequest)WebRequest.Create(url);
+			HttpWebRequest request = null;
+			request = (HttpWebRequest)WebRequest.Create(url);
 			request.Method = "POST";
 			request.ReadWriteTimeout = request.Timeout = config.TimeoutInSeconds * 1000;
 			request.UserAgent = config.UserAgent;

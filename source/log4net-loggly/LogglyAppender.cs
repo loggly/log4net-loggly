@@ -12,9 +12,10 @@ namespace log4net.loggly
 	{
 		List<string> lstLogs = new List<string>();
 		string[] arr = new string[100];
-		public static readonly string InputKeyProperty = "LogglyInputKey";
-		public static ILogglyFormatter Formatter = new LogglyFormatter();
-		public static ILogglyClient Client = new LogglyClient();
+		public readonly string InputKeyProperty = "LogglyInputKey";
+		public ILogglyFormatter Formatter = new LogglyFormatter();
+		public ILogglyClient Client = new LogglyClient();
+		public LogglySendBufferedLogs _sendBufferedLogs = new LogglySendBufferedLogs();
 		private ILogglyAppenderConfig Config = new LogglyAppenderConfig();
 		public string RootUrl { set { Config.RootUrl = value; } }
 		public string InputKey { set { Config.InputKey = value; } }
@@ -42,8 +43,8 @@ namespace log4net.loggly
 			if (lstLogs.Count != 0)
 			{
 				SendAllEvents(lstLogs.ToArray());
-			}           
-		   LogglySendBufferedLogs.sendBufferedLogsToLoggly(Config, Config.LogMode == "bulk/");
+			}
+			_sendBufferedLogs.sendBufferedLogsToLoggly(Config, Config.LogMode == "bulk/");
 		}
 
 		protected override void Append(LoggingEvent loggingEvent)

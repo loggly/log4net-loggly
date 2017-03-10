@@ -5,10 +5,10 @@ namespace log4net.loggly
 {
 	public class LogglyBufferringAppender : BufferingAppenderSkeleton
 	{
-		public static readonly string InputKeyProperty = "LogglyInputKey";
+		public readonly string InputKeyProperty = "LogglyInputKey";
 
-		public static ILogglyFormatter Formatter = new LogglyFormatter();
-		public static ILogglyClient Client = new LogglyClient();
+		public ILogglyFormatter Formatter = new LogglyFormatter();
+		public ILogglyClient Client = new LogglyClient();
 
 		private ILogglyAppenderConfig Config = new LogglyAppenderConfig();
 

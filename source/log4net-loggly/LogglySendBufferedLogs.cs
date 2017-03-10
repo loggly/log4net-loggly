@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -7,15 +7,15 @@ namespace log4net.loggly
 {
 	public class LogglySendBufferedLogs
 	{
-			public static string message;
-			public static List<string> arrayMessage = new List<string>();
-			public static ILogglyClient Client = new LogglyClient();
+			public string message = null;
+			public List<string> arrayMessage = new List<string>();
+			public ILogglyClient Client = new LogglyClient();
+			public LogglyClient _logClient = new LogglyClient();
 		  
-	   public static void sendBufferedLogsToLoggly(ILogglyAppenderConfig config, bool isBulk)
+	   public void sendBufferedLogsToLoggly(ILogglyAppenderConfig config, bool isBulk)
 		{
 			if (LogglyStoreLogsInBuffer.arrBufferedMessage.Count > 0)
 			{
-				
 				int bulkModeBunch = 100;
 				int inputModeBunch = 1;
 				int logInBunch = isBulk ? bulkModeBunch : inputModeBunch;
@@ -40,14 +40,18 @@ namespace log4net.loggly
 						var response = (HttpWebResponse)e.Response;
 						if (response != null && response.StatusCode == HttpStatusCode.Forbidden)
 						{
-							LogglyClient.setTokenValid(false);
+							_logClient.setTokenValid(false);
 							Console.WriteLine("Loggly error: {0}", e.Message);
 							return;
 						}
 					}
-			} 
+					finally
+					{
+						arrayMessage.Clear();
+						arrayMessage = null;
+						GC.Collect();
+					}
+			}
 		}
-
 	}
 }
-
