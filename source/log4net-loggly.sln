@@ -1,9 +1,13 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "log4net-loggly", "log4net-loggly\log4net-loggly.csproj", "{ABE2B1B6-A83C-4604-AF87-FAAC3976530D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "log4net-loggly-console", "log4net-loggly-console\log4net-loggly-console.csproj", "{0FA10015-A535-484E-8700-C06893FCE2BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "log4net-loggly.UnitTests", "log4net-loggly.UnitTests\log4net-loggly.UnitTests.csproj", "{3956C2CB-DAB1-40A6-AC25-8AC6A6F577AA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +39,18 @@ Global
 		{0FA10015-A535-484E-8700-C06893FCE2BB}.Release|Mixed Platforms.Build.0 = Release|x86
 		{0FA10015-A535-484E-8700-C06893FCE2BB}.Release|x86.ActiveCfg = Release|x86
 		{0FA10015-A535-484E-8700-C06893FCE2BB}.Release|x86.Build.0 = Release|x86
+		{3956C2CB-DAB1-40A6-AC25-8AC6A6F577AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3956C2CB-DAB1-40A6-AC25-8AC6A6F577AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3956C2CB-DAB1-40A6-AC25-8AC6A6F577AA}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3956C2CB-DAB1-40A6-AC25-8AC6A6F577AA}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3956C2CB-DAB1-40A6-AC25-8AC6A6F577AA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3956C2CB-DAB1-40A6-AC25-8AC6A6F577AA}.Debug|x86.Build.0 = Debug|Any CPU
+		{3956C2CB-DAB1-40A6-AC25-8AC6A6F577AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3956C2CB-DAB1-40A6-AC25-8AC6A6F577AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3956C2CB-DAB1-40A6-AC25-8AC6A6F577AA}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{3956C2CB-DAB1-40A6-AC25-8AC6A6F577AA}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{3956C2CB-DAB1-40A6-AC25-8AC6A6F577AA}.Release|x86.ActiveCfg = Release|Any CPU
+		{3956C2CB-DAB1-40A6-AC25-8AC6A6F577AA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
