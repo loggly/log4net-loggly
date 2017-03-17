@@ -76,3 +76,14 @@ You should add the following statement at the end of your Main method as the log
 ```
 Console.ReadKey();
 ```
+
+<strong>Added handling for LoggingEvent properties</strong>
+
+Support for properties tied to a specific event and not a ThreadContext which is shared across the entire thread.
+
+<strong>Added test cases project</strong> 
+
+- Added unit test cases project in library to test consistency for new feature.
+
+- User can select test cases project in Visual Studio and can simply run all test cases from Test Explorer.
+
