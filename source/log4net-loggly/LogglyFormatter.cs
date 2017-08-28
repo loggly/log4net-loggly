@@ -196,7 +196,7 @@ namespace log4net.loggly
                 loggingInfo.exception = exceptionInfo;
             }
 
-            var properties = (IDictionary<string, object>) loggingInfo;
+            var properties = (IDictionary<string, object>)loggingInfo;
 
             //handling loggingevent properties
             if (loggingEvent.Properties.Count > 0)
@@ -206,7 +206,7 @@ namespace log4net.loggly
                     object propertyValue;
                     if (TryGetPropertyValue(property.Value, out propertyValue))
                     {
-                        properties[(string) property.Key] = propertyValue;
+                        properties[(string)property.Key] = propertyValue;
                     }
                 }
             }

@@ -37,7 +37,7 @@
                 var result = instance.ToJson(evt);
                 dynamic json = JObject.Parse(result);
 
-                var hostName = (string) json.hostName;
+                var hostName = (string)json.hostName;
 
                 hostName.Should().NotBeNullOrEmpty("because the machine name is used to set the hostname");
             }
@@ -51,7 +51,7 @@
                 var result = instance.ToJson(evt);
                 dynamic json = JObject.Parse(result);
 
-                var level = (string) json.level;
+                var level = (string)json.level;
 
                 level.Should().StartWith("levelName", "because the level name property on the event is used");
             }
@@ -65,7 +65,7 @@
                 var result = instance.ToJson(evt);
                 dynamic json = JObject.Parse(result);
 
-                var loggerName = (string) json.loggerName;
+                var loggerName = (string)json.loggerName;
 
                 loggerName.Should().StartWith("LoggerName", "because this is the value of the LoggerName property on the event");
             }
@@ -79,7 +79,7 @@
                 var result = instance.ToJson(evt);
                 dynamic json = JObject.Parse(result);
 
-                var message = (string) json.message;
+                var message = (string)json.message;
 
                 message.Should()
                     .Be("null", "because the MessageObject property is null but we want to log \"null\" to show this explicitly");
@@ -94,7 +94,7 @@
                 var result = instance.ToJson(evt);
                 dynamic json = JObject.Parse(result);
 
-                var process = (string) json.process;
+                var process = (string)json.process;
 
                 process.Should().NotBeNullOrEmpty("because the value is taken from the current process which should always be set");
             }
@@ -108,7 +108,7 @@
                 var result = instance.ToJson(evt);
                 dynamic json = JObject.Parse(result);
 
-                var threadName = (string) json.threadName;
+                var threadName = (string)json.threadName;
 
                 threadName.Should().StartWith("ThreadName", "because this is the value of the ThreadName property on the event");
             }
@@ -122,7 +122,7 @@
                 var result = instance.ToJson(evt);
                 dynamic json = JObject.Parse(result);
 
-                var timestamp = (string) json.timestamp;
+                var timestamp = (string)json.timestamp;
                 DateTime voidDateTime;
 
                 timestamp.Should().NotBeNullOrEmpty("because the timestamp property should always be set");
@@ -144,8 +144,8 @@
                 var result = instance.ToJson(evt);
                 dynamic json = JObject.Parse(result);
 
-                var propertyOne = (string) json.PropertyOne;
-                var propertyTwo = (int) json.PropertyTwo;
+                var propertyOne = (string)json.PropertyOne;
+                var propertyTwo = (int)json.PropertyTwo;
 
                 propertyOne.Should().StartWith("PropertyOne", "because the value from the PropertyOne property on the complex type is used");
                 propertyTwo.Should().BeGreaterThan(0, "because the value of the PropertyTwo property on the complex type is used");
@@ -185,14 +185,14 @@
                 var key4 = json.Key4;
                 var key5 = json.Key5;
 
-                ((string) key1).Should().StartWith("value1", "because that's the value of the event property with this key");
-                ((int) key2).Should().BeGreaterThan(0, "because the key is set to a positive value in the event properties");
-                ((object) key3).Should().NotBeNull("because the key is set in the event properties");
-                ((string) key3.PropertyOne).Should().StartWith("PropertyOne", "because the value of the complex type should be serialized");
-                ((int) key3.PropertyTwo).Should().BeGreaterThan(0, "because the value of the complex type should be serialized");
-                ((object) key4).Should().NotBeNull("because the key is set in the event properties");
-                ((string) key4).Should().Be("I'm a fixed type!", "because the type of this property requires fixing");
-                ((object) key5).Should().BeNull("because the key is set but the value is null");
+                ((string)key1).Should().StartWith("value1", "because that's the value of the event property with this key");
+                ((int)key2).Should().BeGreaterThan(0, "because the key is set to a positive value in the event properties");
+                ((object)key3).Should().NotBeNull("because the key is set in the event properties");
+                ((string)key3.PropertyOne).Should().StartWith("PropertyOne", "because the value of the complex type should be serialized");
+                ((int)key3.PropertyTwo).Should().BeGreaterThan(0, "because the value of the complex type should be serialized");
+                ((object)key4).Should().NotBeNull("because the key is set in the event properties");
+                ((string)key4).Should().Be("I'm a fixed type!", "because the type of this property requires fixing");
+                ((object)key5).Should().BeNull("because the key is set but the value is null");
             }
 
             [Fact]
@@ -219,15 +219,15 @@
                 var key4 = json.Key4;
                 var key5 = json.Key5;
 
-                ((string) key1).Should().StartWith("value1", "because that's the value of the event property with this key");
-                ((int) key2).Should().BeGreaterThan(0, "because the key is set to a positive value in the event properties");
-                ((object) key3).Should().NotBeNull("because the key is set in the event properties");
-                ((string) key3.PropertyOne).Should().StartWith("PropertyOne", "because the value of the complex type should be serialized");
-                ((int) key3.PropertyTwo).Should().BeGreaterThan(0, "because the value of the complex type should be serialized");
-                ((object) key4).Should().NotBeNull("because the key is set in the event properties");
-                ((string) key4).Should().Be("I'm a fixed type!", "because the type of this property requires fixing");
-                ((object) key5).Should().BeNull("because the key is set but the value is null");
-                ((object) json.Key6).Should().BeNull("because this key was not marked for serialization");
+                ((string)key1).Should().StartWith("value1", "because that's the value of the event property with this key");
+                ((int)key2).Should().BeGreaterThan(0, "because the key is set to a positive value in the event properties");
+                ((object)key3).Should().NotBeNull("because the key is set in the event properties");
+                ((string)key3.PropertyOne).Should().StartWith("PropertyOne", "because the value of the complex type should be serialized");
+                ((int)key3.PropertyTwo).Should().BeGreaterThan(0, "because the value of the complex type should be serialized");
+                ((object)key4).Should().NotBeNull("because the key is set in the event properties");
+                ((string)key4).Should().Be("I'm a fixed type!", "because the type of this property requires fixing");
+                ((object)key5).Should().BeNull("because the key is set but the value is null");
+                ((object)json.Key6).Should().BeNull("because this key was not marked for serialization");
             }
 
             [Fact]
@@ -254,15 +254,15 @@
                 var key4 = json.Key4;
                 var key5 = json.Key5;
 
-                ((string) key1).Should().StartWith("value1", "because that's the value of the event property with this key");
-                ((int) key2).Should().BeGreaterThan(0, "because the key is set to a positive value in the event properties");
-                ((object) key3).Should().NotBeNull("because the key is set in the event properties");
-                ((string) key3.PropertyOne).Should().StartWith("PropertyOne", "because the value of the complex type should be serialized");
-                ((int) key3.PropertyTwo).Should().BeGreaterThan(0, "because the value of the complex type should be serialized");
-                ((object) key4).Should().NotBeNull("because the key is set in the event properties");
-                ((string) key4).Should().Be("I'm a fixed type!", "because the type of this property requires fixing");
-                ((object) key5).Should().BeNull("because the key is set but the value is null");
-                ((object) json.Key6).Should().BeNull("because this key was not marked for serialization");
+                ((string)key1).Should().StartWith("value1", "because that's the value of the event property with this key");
+                ((int)key2).Should().BeGreaterThan(0, "because the key is set to a positive value in the event properties");
+                ((object)key3).Should().NotBeNull("because the key is set in the event properties");
+                ((string)key3.PropertyOne).Should().StartWith("PropertyOne", "because the value of the complex type should be serialized");
+                ((int)key3.PropertyTwo).Should().BeGreaterThan(0, "because the value of the complex type should be serialized");
+                ((object)key4).Should().NotBeNull("because the key is set in the event properties");
+                ((string)key4).Should().Be("I'm a fixed type!", "because the type of this property requires fixing");
+                ((object)key5).Should().BeNull("because the key is set but the value is null");
+                ((object)json.Key6).Should().BeNull("because this key was not marked for serialization");
             }
 
             [Fact]
@@ -293,11 +293,11 @@
 
                 var exception = json.exception;
 
-                ((object) exception).Should().NotBeNull("because an exception was specified in the event");
+                ((object)exception).Should().NotBeNull("because an exception was specified in the event");
 
-                var message = (string) exception.exceptionMessage;
-                var type = (string) exception.exceptionType;
-                var stacktrace = (string) exception.stacktrace;
+                var message = (string)exception.exceptionMessage;
+                var type = (string)exception.exceptionType;
+                var stacktrace = (string)exception.stacktrace;
 
                 message.Should().NotBeNullOrEmpty("because an argument exception has a default message");
                 type.Should().Be(typeof(ArgumentException).FullName, "because we logged an argument exception");
@@ -326,14 +326,14 @@
                 var key4 = json.Key4;
                 var key5 = json.Key5;
 
-                ((string) key1).Should().StartWith("value1", "because that's the value of the event property with this key");
-                ((int) key2).Should().BeGreaterThan(0, "because the key is set to a positive value in the event properties");
-                ((object) key3).Should().NotBeNull("because the key is set in the event properties");
-                ((string) key3.PropertyOne).Should().StartWith("PropertyOne", "because the value of the complex type should be serialized");
-                ((int) key3.PropertyTwo).Should().BeGreaterThan(0, "because the value of the complex type should be serialized");
-                ((object) key4).Should().NotBeNull("because the key is set in the event properties");
-                ((string) key4).Should().Be("I'm a fixed type!", "because the type of this property requires fixing");
-                ((object) key5).Should().BeNull("because the key is set but the value is null");
+                ((string)key1).Should().StartWith("value1", "because that's the value of the event property with this key");
+                ((int)key2).Should().BeGreaterThan(0, "because the key is set to a positive value in the event properties");
+                ((object)key3).Should().NotBeNull("because the key is set in the event properties");
+                ((string)key3.PropertyOne).Should().StartWith("PropertyOne", "because the value of the complex type should be serialized");
+                ((int)key3.PropertyTwo).Should().BeGreaterThan(0, "because the value of the complex type should be serialized");
+                ((object)key4).Should().NotBeNull("because the key is set in the event properties");
+                ((string)key4).Should().Be("I'm a fixed type!", "because the type of this property requires fixing");
+                ((object)key5).Should().BeNull("because the key is set but the value is null");
             }
 
             [Fact]
@@ -351,7 +351,7 @@
                 var result = instance.ToJson(evt);
                 dynamic json = JObject.Parse(result);
 
-                var message = (string) json.message;
+                var message = (string)json.message;
 
                 message.Should().StartWith("message", "because the MessageObject property value is used");
             }

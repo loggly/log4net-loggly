@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace log4net_loggly_console
 {
@@ -20,17 +17,17 @@ namespace log4net_loggly_console
             TOField4 = new { TOFF1 = "TOFFValue1", TOFF2 = "TOFFValue2" };
         }
     }
-	//test self referencing
-	class Person
-	{
-		public string Name;
-		public Person Parent;
-		public List<Person> Children;
-	}
+    //test self referencing
+    class Person
+    {
+        public string Name;
+        public Person Parent;
+        public List<Person> Children;
+    }
 
-	class Child : Person
-	{
-		public string Name;
+    class Child : Person
+    {
+        public string Name;
 
-	}
+    }
 }
