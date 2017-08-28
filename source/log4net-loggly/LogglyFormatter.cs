@@ -7,7 +7,7 @@ namespace log4net.loggly
     using System.Dynamic;
     using System.Linq;
     using System.Text;
-    using log4net.Core;
+    using Core;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
