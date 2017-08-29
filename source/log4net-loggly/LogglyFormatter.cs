@@ -109,7 +109,16 @@ namespace log4net.loggly
             objInfo = null;
             var bytesLengthAllowedToLoggly = EVENT_SIZE;
 
-            if (loggingEvent.MessageObject != null)
+            if (!string.IsNullOrEmpty(loggingEvent.RenderedMessage))
+            {
+                message = loggingEvent.RenderedMessage;
+                var messageSizeInBytes = Encoding.Default.GetByteCount(message);
+                if (messageSizeInBytes > bytesLengthAllowedToLoggly)
+                {
+                    message = message.Substring(0, bytesLengthAllowedToLoggly);
+                }
+            }
+            else if (loggingEvent.MessageObject != null)
             {
                 if (loggingEvent.MessageObject is string
                     //if it is sent by using InfoFormat method then treat it as a string message
