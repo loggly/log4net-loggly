@@ -2,6 +2,7 @@
 using log4net.Core;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Timer = System.Timers;
 
 
@@ -109,6 +110,18 @@ namespace log4net.loggly
 	    private bool IsInputsMode()
 	    {
 	        return Config.LogMode == "inputs/";
+	    }
+
+	    protected override void OnClose()
+	    {
+	        if (IsBulkMode() && lstLogs.Any())
+	        {
+	            SendAllEvents(lstLogs.ToArray());
+	        }
+
+	        LogglyAsync.Flush();
+
+	        base.OnClose();
 	    }
     }
 }
