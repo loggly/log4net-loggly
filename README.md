@@ -69,14 +69,6 @@ Send logs to Loggly using the following code
     logger.Info("log message");
 ```
 
-<strong>For Console Application</strong>
-
-You should add the following statement at the end of your Main method as the log4net-loggly library is asynchronous so there needs to be time for the threads the complete logging before the application exits.
-
-```
-Console.ReadKey();
-```
-
 <strong>Added handling for LoggingEvent properties</strong>
 
 Support for properties tied to a specific event and not a ThreadContext which is shared across the entire thread.
