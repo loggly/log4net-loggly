@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading;
 
 namespace log4net.loggly
@@ -52,6 +53,14 @@ namespace log4net.loggly
 				Queue.TryAdd(msg);
 			}
 		}
+
+	    public void Flush()
+	    {
+	        while (IsRunning && Queue.Any())
+	        {
+	            Thread.SpinWait(100);
+	        }
+	    }
 	}
 
 }
