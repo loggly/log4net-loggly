@@ -7,7 +7,7 @@
     using log4net.Core;
     using log4net.loggly;
     using log4net.Repository;
-    using log4net_loggly.UnitTests.Models;
+    using Models;
     using Moq;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -304,6 +304,58 @@
                 stacktrace.Should().NotBeNull("because the exception has a stacktrace");
             }
 
+            [Theory]
+            [InlineData(0, 0, 1)]
+            [InlineData(1, 1, 1)]
+            [InlineData(2, 1, 1)]
+            [InlineData(2, 2, 2)]
+            [InlineData(2, 2, 3)]
+            [InlineData(3, 3, 3)]
+            [InlineData(5, 5, 5)]
+            [InlineData(5, 5, 10)]
+            public void ShouldSerializeInnerExceptions(int configurationNumberOfInnerExceptions, int expectedNumberOfException, int innerExceptionsToCreate)
+            {
+                Exception ex = GetArgumentException(innerExceptionsToCreate + 1);
+
+                var evt = new LoggingEvent(
+                    GetType(),
+                    Mock.Of<ILoggerRepository>(),
+                    _fixture.Create("loggerName"),
+                    _fixture.Create<Level>(),
+                    _fixture.Create("message"),
+                    ex);
+                var instance = _fixture.Create<LogglyFormatter>();
+                _fixture.Freeze<Mock<ILogglyAppenderConfig>>().SetupGet(x => x.NumberOfInnerExceptions).Returns(configurationNumberOfInnerExceptions);
+
+                var result = instance.ToJson(evt);
+                dynamic json = JObject.Parse(result);
+
+                var exception = json.exception;
+
+                ((object)exception).Should().NotBeNull("because an exception was specified in the event");
+
+                // Validate first level
+                var message = (string)exception.exceptionMessage;
+                var type = (string)exception.exceptionType;
+                var stacktrace = (string)exception.stacktrace;
+                AssertException(message, type, stacktrace, 0);
+
+                // Validate inner exceptions
+                var count = 0;
+                var innerException = exception.innerException;
+                while (innerException != null)
+                {
+                    count++;
+                    message = (string)innerException.innerExceptionMessage;
+                    type = (string)innerException.innerExceptionType;
+                    stacktrace = (string)innerException.innerStacktrace;
+                    AssertException(message, type, stacktrace, count);
+                    innerException = innerException.innerException;
+                }
+
+                count.Should().Be(expectedNumberOfException, "Expects all stacktraces");
+            }
+
             [Fact]
             public void ShouldSerializeThreadContextProperties()
             {
@@ -354,6 +406,60 @@
                 var message = (string) json.message;
 
                 message.Should().StartWith("message", "because the MessageObject property value is used");
+            }
+
+            private static ArgumentException GetArgumentException(int numberOfExceptions)
+            {
+                try
+                {
+                    if (--numberOfExceptions > 0)
+                    {
+                        try
+                        {
+                            GetNestedArgumentException(numberOfExceptions);
+                        }
+                        catch (ArgumentException e)
+                        {
+                            throw new ArgumentException("Exception 0", e);
+                        }
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Exception 0");
+                    }
+                }
+                catch (ArgumentException e)
+                {
+                    return e;
+                }
+                return null;
+            }
+
+            private static void GetNestedArgumentException(int numberOfExceptions, int deep = 0)
+            {
+                deep++;
+                if (--numberOfExceptions > 0)
+                {
+                    try
+                    {
+                        GetNestedArgumentException(numberOfExceptions, deep);
+                    }
+                    catch (ArgumentException e)
+                    {
+                        throw new ArgumentException($"Exception {deep}", e);
+                    }
+                }
+                else
+                {
+                    throw new ArgumentException($"Exception {deep}");
+                }
+            }
+
+            private static void AssertException(string message, string type, string stacktrace, int stackLevel)
+            {
+                message.Should().Be($"Exception {stackLevel}", "because an argument exception has a default message");
+                type.Should().Be(typeof(ArgumentException).FullName, "because we logged an argument exception");
+                stacktrace.Should().NotBeNull("because the exception has a stacktrace");
             }
         }
     }

@@ -11,5 +11,6 @@ namespace log4net.loggly
 		string LogicalThreadContextKeys { get; set; }
 		string GlobalContextKeys { get; set; }
 		int BufferSize { get; set; }
+		int NumberOfInnerExceptions { get; set; }
 	}
 }

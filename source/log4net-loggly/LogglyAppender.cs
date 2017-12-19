@@ -26,6 +26,7 @@ namespace log4net.loggly
 		public string LogicalThreadContextKeys { set { Config.LogicalThreadContextKeys = value; } }
 		public string GlobalContextKeys { set { Config.GlobalContextKeys = value; } }
 		public int BufferSize { set { Config.BufferSize = value; } }
+		public int NumberOfInnerExceptions { set { Config.NumberOfInnerExceptions = value; } }
 
 		private LogglyAsyncHandler LogglyAsync;
 
