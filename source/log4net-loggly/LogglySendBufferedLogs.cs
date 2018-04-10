@@ -47,8 +47,6 @@ namespace log4net.loggly
                 }
                 finally
                 {
-                    arrayMessage.Clear();
-                    arrayMessage = null;
                     GC.Collect();
                 }
             }
