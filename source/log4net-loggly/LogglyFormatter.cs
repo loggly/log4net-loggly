@@ -118,25 +118,6 @@ namespace log4net.loggly
                     message = message.Substring(0, bytesLengthAllowedToLoggly);
                 }
             }
-            else if (loggingEvent.MessageObject != null)
-            {
-                if (loggingEvent.MessageObject is string
-                    //if it is sent by using InfoFormat method then treat it as a string message
-                    || loggingEvent.MessageObject.GetType().FullName == "log4net.Util.SystemStringFormat"
-                    || loggingEvent.MessageObject.GetType().FullName.Contains("StringFormatFormattedMessage"))
-                {
-                    message = loggingEvent.MessageObject.ToString();
-                    var messageSizeInBytes = Encoding.Default.GetByteCount(message);
-                    if (messageSizeInBytes > bytesLengthAllowedToLoggly)
-                    {
-                        message = message.Substring(0, bytesLengthAllowedToLoggly);
-                    }
-                }
-                else
-                {
-                    objInfo = loggingEvent.MessageObject;
-                }
-            }
             else
             {
                 //adding message as null so that the Loggly user
