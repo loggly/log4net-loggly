@@ -7,7 +7,7 @@ namespace log4net.loggly
     using System.Dynamic;
     using System.Linq;
     using System.Text;
-    using log4net.Core;
+    using Core;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
@@ -109,23 +109,13 @@ namespace log4net.loggly
             objInfo = null;
             var bytesLengthAllowedToLoggly = EVENT_SIZE;
 
-            if (loggingEvent.MessageObject != null)
+            if (!string.IsNullOrEmpty(loggingEvent.RenderedMessage))
             {
-                if (loggingEvent.MessageObject is string
-                    //if it is sent by using InfoFormat method then treat it as a string message
-                    || loggingEvent.MessageObject.GetType().FullName == "log4net.Util.SystemStringFormat"
-                    || loggingEvent.MessageObject.GetType().FullName.Contains("StringFormatFormattedMessage"))
+                message = loggingEvent.RenderedMessage;
+                var messageSizeInBytes = Encoding.Default.GetByteCount(message);
+                if (messageSizeInBytes > bytesLengthAllowedToLoggly)
                 {
-                    message = loggingEvent.MessageObject.ToString();
-                    var messageSizeInBytes = Encoding.Default.GetByteCount(message);
-                    if (messageSizeInBytes > bytesLengthAllowedToLoggly)
-                    {
-                        message = message.Substring(0, bytesLengthAllowedToLoggly);
-                    }
-                }
-                else
-                {
-                    objInfo = loggingEvent.MessageObject;
+                    message = message.Substring(0, bytesLengthAllowedToLoggly);
                 }
             }
             else
@@ -196,7 +186,7 @@ namespace log4net.loggly
                 loggingInfo.exception = exceptionInfo;
             }
 
-            var properties = (IDictionary<string, object>) loggingInfo;
+            var properties = (IDictionary<string, object>)loggingInfo;
 
             //handling loggingevent properties
             if (loggingEvent.Properties.Count > 0)
@@ -206,7 +196,7 @@ namespace log4net.loggly
                     object propertyValue;
                     if (TryGetPropertyValue(property.Value, out propertyValue))
                     {
-                        properties[(string) property.Key] = propertyValue;
+                        properties[(string)property.Key] = propertyValue;
                     }
                 }
             }
