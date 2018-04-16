@@ -3,7 +3,7 @@ log4net-loggly
 
 Custom log4net appenders for importing logging events to loggly. It’s asynchronous and will send logs in the background without blocking your application. Check out Loggly's [.Net logging documentation](https://www.loggly.com/docs/net-logs/) to learn more.
 
-<strong>Note:</strong> This library also has a support for .NET Core applications. Please see the section <strong>[.NET Core Support](https://github.com/Shwetajain148/log4net-loggly/blob/update-instrunctions-for-dotnetcore/README.md#net-core-support)</strong> below.
+<strong>Note:</strong> This library also has a support for .NET Core applications. Please see the section <strong>[.NET Core Support](README.md#net-core-support)</strong> below.
 
 Download log4net-loggly package from NuGet. Use the following command.
 
