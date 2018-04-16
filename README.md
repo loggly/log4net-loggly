@@ -3,7 +3,7 @@ log4net-loggly
 
 Custom log4net appenders for importing logging events to loggly. It’s asynchronous and will send logs in the background without blocking your application. Check out Loggly's [.Net logging documentation](https://www.loggly.com/docs/net-logs/) to learn more.
 
-<strong>Note:</strong> This library also has a support for .NET Core applications. Please see the section <strong>.NET Core Support</strong> below.
+<strong>Note:</strong> This library also has a support for .NET Core applications. Please see the section <strong>[.NET Core Support](https://github.com/Shwetajain148/log4net-loggly/blob/update-instrunctions-for-dotnetcore/README.md#net-core-support)</strong> below.
 
 Download log4net-loggly package from NuGet. Use the following command.
 
@@ -78,7 +78,7 @@ You should add the following statement at the end of your Main method as the log
 ```
 Console.ReadKey();
 ```
-<strong>.NET Core Support:</strong>
+### <strong>.NET Core Support:</strong>
 
 <strong>Prerequisites:</strong>
 
@@ -100,13 +100,13 @@ dotnet new console -o Application_Name
 
 The <strong>dotnet</strong> command creates a new application of type <strong>console</strong> for you. The <strong>-o</strong> parameter creates a directory named <strong><Application_Name></strong> where your app is stored, and populates it with the required files.
 
-- You have to install the package <strong>log4net-loggly</strong> into your project from <strong>NuGet</strong> by running the command on <strong>Package Manager Console</strong> as shown below-
+- If you are using <strong>Visual Studio 2017 IDE</strong> then you have to install the package <strong>log4net-loggly</strong> into your project from <strong>NuGet</strong> by running the command on <strong>Package Manager Console</strong> as shown below-
 
 ```
 Install-Package log4net-loggly
 ```
 
-- If you are using Visual Studio Code then run the below command on the terminal to install the <strong>log4net-loggly</strong> package.
+- If you are using <strong>Visual Studio Code</strong> then run the below command on the terminal to install the <strong>log4net-loggly</strong> package.
 
 ```
 dotnet add package log4net-loggly
