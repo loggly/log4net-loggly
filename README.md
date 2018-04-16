@@ -82,21 +82,41 @@ Console.ReadKey();
 
 <strong>Prerequisites:</strong>
 
-- Since this library support .NET Core target framework 2.0, make sure you are using version 15.3.0 or higher of Visual Studio IDE 2017. 
+- Since this library support .NET Core target framework 2.0, make sure you are using either version 15.3.0 or higher of Visual Studio IDE 2017 or Visual Studio Code.
 
-- You must have installed the .NET Core 2.0 SDK and Runtime environment.
+- You must have installed the .NET Core 2.0 SDK and Runtime environment to develop and run your .NET Core 2.0 applications.
 
 - You may also have to install the .NET Core cross-platform development workload (in the Other Toolsets section). Please see the more details [here](https://docs.microsoft.com/en-us/dotnet/core/windows-prerequisites?tabs=netcore2x).
 
 Once you are done with the environment setup, now you are all set to create your application in .NET Core target framework 2.0. Please follow the points below-
 
-- You have to install the package <strong>log4net-loggly</strong> as shown below-
+- If you are using <strong>Visual Studio 2017 IDE</strong> then you can create a new .NET Core project by selecting <strong>New Project</strong> from <strong>File</strong> menu.
+
+- <strong>Visual Studio Code</strong> users can create a new project by running the below command on the project workspace terminal-
+
+```
+dotnet new console -o Application_Name
+```
+
+The <strong>dotnet</strong> command creates a new application of type <strong>console</strong> for you. The <strong>-o</strong> parameter creates a directory named <strong><Application_Name></strong> where your app is stored, and populates it with the required files.
+
+- You have to install the package <strong>log4net-loggly</strong> into your project from <strong>NuGet</strong> by running the command on <strong>Package Manager Console</strong> as shown below-
 
 ```
 Install-Package log4net-loggly
 ```
 
-- Now when you create an applicaton in .NET Core, there is no App.config file exist already in the project so you have to create one. Right click on your project and create a <strong>Application Configuration File</strong> "App.config" on the root level of your project.
+- If you are using Visual Studio Code then run the below command on the terminal to install the <strong>log4net-loggly</strong> package.
+
+```
+dotnet add package log4net-loggly
+```
+
+- Now when you create an applicaton in .NET Core, there is no App.config file exist already in the project so you have to create one.
+
+    (a) For <strong>Visual Studio 2017</strong> users, you should right click on your project and create a <strong>Application Configuration File</strong> "App.config" on the root level of your project.
+
+  (b) For <strong>Visual Studio Code</strong> users, you should simply create the same configuration file on the the folder structure where your another files exists.
 
 - You should simply add the below configuration code in your App.config file to configure LogglyAppender in your application. Make sure the <strong>configSections</strong> block is the first element of the configuration in app.config. This is a requirement set by .NET.
 
@@ -119,9 +139,11 @@ Install-Package log4net-loggly
     </log4net>
 ```
 
-<strong>Note: Your application will not be able to read configurations from this App.config file until you do the following-</strong>
+<strong>Note: If you are using Visual Studio 2017 IDE then your application will not be able to read configurations from this App.config file until you do the following-</strong>
 
 - Right click on your <strong>App.config</strong> file from Solution Explorer, go to <strong>Properties</strong> and select the <strong>Copy to Output Directory</strong> to <strong>Copy always</strong>, click Apply and hit the OK button.
+
+ If you are using <strong>Visual Studio Code</strong> then you don't need to do the extra settings for App.config file.
 
 - As compare to .NET Frameworks, in .NET Core you don't need any AssemblyInfo.cs file to add the below code in-
 
@@ -152,6 +174,14 @@ var items = new Dictionary<string,string>();
 items.Add("key1","value1");
 items.Add("key2", "value2");
 logger.Info(items);
+```
+
+Running the application in <strong>Visual Studio 2017 IDE</strong> is easy since you just need to click on the <strong>Start</strong> button to run your application.
+
+If you are using <strong>Visual Studio Code</strong> then you have to run the below command on the terminal to run your .NET Core application-
+
+```
+dotnet run
 ```
 
 And that's it. After doing this, you will see your .NET Core application logs flowing into Loggly.
