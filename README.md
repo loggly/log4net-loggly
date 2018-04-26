@@ -10,24 +10,24 @@ Download log4net-loggly package from NuGet. Use the following command.
     Install-Package log4net-loggly
 
 Add the following code in your web.config to configure LogglyAppender in your application
+```xml
+<configSections>
+    <section name="log4net" type="log4net.Config.Log4NetConfigurationSectionHandler, log4net" />
+</configSections>
+  <log4net>
+    <root>
+      <level value="ALL" />
+      <appender-ref ref="LogglyAppender" />
+    </root>
+    <appender name="LogglyAppender" type="log4net.loggly.LogglyAppender, log4net-loggly">
+      <rootUrl value="https://logs-01.loggly.com/" />
+      <inputKey value="your-customer-token" />
+      <tag value="your-custom-tag" />
+      <logicalThreadContextKeys value="lkey1,lkey2" /> <!-- optional -->
+      <globalContextKeys value="gkey1,gkey2" /> <!-- optional -->
+    </appender>
+  </log4net>
 ```
-    <configSections>
-      <section name="log4net" type="log4net.Config.Log4NetConfigurationSectionHandler, log4net" />
-    </configSections>
-    <log4net>
-      <root>
-        <level value="ALL" />
-        <appender-ref ref="LogglyAppender" />
-      </root>
-      <appender name="LogglyAppender" type="log4net.loggly.LogglyAppender, log4net-loggly">
-        <rootUrl value="https://logs-01.loggly.com/" />
-        <inputKey value="your-customer-token" />
-		<tag value="your-custom-tag" /> 
-		<logicalThreadContextKeys value="lkey1,lkey2" /> <!-- optional -->
-		<globalContextKeys value="gkey1,gkey2" /> <!-- optional -->
-      </appender>
-    </log4net>
-```    
 To send **GlobalContext** and **LogicalThreadContext** properties in your log you need define the list of used properties in the configuration. 
 
 For GlobalContext Properties use 
@@ -120,23 +120,26 @@ dotnet add package log4net-loggly
 
 - You should simply add the below configuration code in your App.config file to configure LogglyAppender in your application. Make sure the <strong>configSections</strong> block is the first element of the configuration in app.config. This is a requirement set by .NET.
 
-```
-<configSections>
-      <section name="log4net" type="log4net.Config.Log4NetConfigurationSectionHandler, log4net" />
-    </configSections>
-    <log4net>
-      <root>
-        <level value="ALL" />
-        <appender-ref ref="LogglyAppender" />
-      </root>
-      <appender name="LogglyAppender" type="log4net.loggly.LogglyAppender, log4net-loggly">
-        <rootUrl value="https://logs-01.loggly.com/" />
-        <inputKey value="your-customer-token" />
-		<tag value="your-custom-tag" /> 
-		<logicalThreadContextKeys value="lkey1,lkey2" /> <!-- optional -->
-		<globalContextKeys value="gkey1,gkey2" /> <!-- optional -->
-      </appender>
-    </log4net>
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <configSections>
+    <section name="log4net" type="log4net.Config.Log4NetConfigurationSectionHandler, log4net" />
+  </configSections>
+  <log4net>
+    <root>
+      <level value="ALL" />
+      <appender-ref ref="LogglyAppender" />
+    </root>
+    <appender name="LogglyAppender" type="log4net.loggly.LogglyAppender, log4net-loggly">
+      <rootUrl value="https://logs-01.loggly.com/" />
+      <inputKey value="your-customer-token" />
+      <tag value="your-custom-tag" />
+      <logicalThreadContextKeys value="lkey1,lkey2" /> <!-- optional -->
+      <globalContextKeys value="gkey1,gkey2" /> <!-- optional -->
+    </appender>
+  </log4net>
+</configuration>
 ```
 
 <strong>Note: If you are using Visual Studio 2017 IDE then your application will not be able to read configurations from this App.config file until you do the following-</strong>
