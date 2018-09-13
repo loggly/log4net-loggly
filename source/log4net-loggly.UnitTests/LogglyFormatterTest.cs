@@ -1,6 +1,7 @@
 ﻿namespace log4net_loggly.UnitTests
 {
     using System;
+    using AutoFixture;
     using FluentAssertions;
     using JetBrains.Annotations;
     using log4net;
@@ -11,7 +12,6 @@
     using Moq;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using Ploeh.AutoFixture;
     using Xunit;
 
     [UsedImplicitly]

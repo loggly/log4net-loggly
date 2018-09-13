@@ -2,16 +2,16 @@
 
   <PropertyGroup>
     <DebugType>full</DebugType>
-    <TargetFrameworks>netcoreapp2.0;net40</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net40</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>8.0.0</Version>
+    <Version>8.0.1</Version>
     <Authors>Loggly</Authors>
     <Company>Loggly</Company>
     <PackageLicenseUrl>http://opensource.org/licenses/MIT</PackageLicenseUrl>
     <Product>Loggly</Product>
     <PackageProjectUrl>http://github.com/loggly/log4net-loggly</PackageProjectUrl>
     <Description>Custom log4Net Appender to send logs to Loggly</Description>
-    <PackageReleaseNotes>.NET Core 2.0 support with old .NET frameworks compatibility</PackageReleaseNotes>
+    <PackageReleaseNotes>.NET Standard 2.0 support with old .NET frameworks compatibility</PackageReleaseNotes>
     <Copyright>Copyright 2017</Copyright>
     <PackageTags>Loggly-log4net log4net appender logs</PackageTags>
   </PropertyGroup>
