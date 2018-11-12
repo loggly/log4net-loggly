@@ -10,6 +10,7 @@ namespace log4net.loggly
 {
     public class LogglyAppender : AppenderSkeleton
     {
+        internal static TimeSpan SendInterval = TimeSpan.FromSeconds(5);
         List<string> lstLogs = new List<string>();
         string[] arr = new string[100];
         public readonly string InputKeyProperty = "LogglyInputKey";
@@ -34,7 +35,7 @@ namespace log4net.loggly
         {
             LogglyAsync = new LogglyAsyncHandler();
             Timer.Timer t = new Timer.Timer();
-            t.Interval = 5000;
+            t.Interval = SendInterval.TotalMilliseconds;
             t.Enabled = true;
             t.Elapsed += t_Elapsed;
         }

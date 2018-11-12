@@ -160,7 +160,7 @@
                 var result = instance.ToJson(evt);
                 Action act = () => JObject.Parse(result);
 
-                act.ShouldNotThrow<JsonException>("because the result should be a valid json document");
+                act.Should().NotThrow<JsonException>("because the result should be a valid json document");
             }
 
             [Fact]
