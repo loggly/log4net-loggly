@@ -45,7 +45,8 @@ namespace log4net_loggly.UnitTests
             LogglyAppender.SendInterval = TimeSpan.FromMilliseconds(10);
 
             var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
-            log4net.Config.XmlConfigurator.Configure(logRepository, new FileInfo("app.config"));
+            var currentFileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
+            log4net.Config.XmlConfigurator.Configure(logRepository, new FileInfo(currentFileName+".config"));
 
             _log = LogManager.GetLogger(GetType());
 
