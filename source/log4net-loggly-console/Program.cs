@@ -94,6 +94,36 @@ namespace log4net_loggly_console
             log.Info(new TestObject());
             log.Info(null);
 
+            try
+            {
+                try
+                {
+                    try
+                    {
+                        try
+                        {
+                            throw new Exception("1");
+                        }
+                        catch (Exception e)
+                        {
+                            throw new Exception("2", e);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        throw new Exception("3", e);
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("4", e);
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error("Exception", e);
+            }
+
             Console.ReadKey();
         }
     }

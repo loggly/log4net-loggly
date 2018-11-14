@@ -25,9 +25,11 @@ Add the following code in your web.config to configure LogglyAppender in your ap
       <tag value="your-custom-tag" />
       <logicalThreadContextKeys value="lkey1,lkey2" /> <!-- optional -->
       <globalContextKeys value="gkey1,gkey2" /> <!-- optional -->
+      <numberOfInnerExceptions value="4"/> <!-- optional -->
     </appender>
   </log4net>
 ```
+
 To send **GlobalContext** and **LogicalThreadContext** properties in your log you need define the list of used properties in the configuration. 
 
 For GlobalContext Properties use 
@@ -49,6 +51,10 @@ By default, library uses Loggly /bulk end point (https://www.loggly.com/docs/htt
 <logMode value="inputs" />
 ```
 
+Set number of inner exceptions that should be sent to loggly, if you don't want the default value.
+```
+<numberOfInnerExceptions value value="4"/>
+```
 
 Add the following entry in your AssemblyInfo.cs
 ```

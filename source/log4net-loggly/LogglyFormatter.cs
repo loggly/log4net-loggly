@@ -80,20 +80,29 @@ namespace log4net.loggly
             exceptionInfo.exceptionType = loggingEvent.ExceptionObject.GetType().FullName;
             exceptionInfo.exceptionMessage = loggingEvent.ExceptionObject.Message;
             exceptionInfo.stacktrace = loggingEvent.ExceptionObject.StackTrace;
-
-            //most of the times dotnet exceptions contain important messages in the inner exceptions
-            if (loggingEvent.ExceptionObject.InnerException != null)
-            {
-                dynamic innerException = new
-                {
-                    innerExceptionType = loggingEvent.ExceptionObject.InnerException.GetType().FullName,
-                    innerExceptionMessage = loggingEvent.ExceptionObject.InnerException.Message,
-                    innerStacktrace = loggingEvent.ExceptionObject.InnerException.StackTrace
-                };
-                exceptionInfo.innerException = innerException;
-            }
+            exceptionInfo.innerException =
+                GetInnerExceptions(loggingEvent.ExceptionObject.InnerException, Config.NumberOfInnerExceptions);
 
             return exceptionInfo;
+        }
+
+        /// <summary>
+        /// Return nested exceptions
+        /// </summary>
+        /// <param name="innerException">The inner exception</param>
+        /// <param name="deep">The number of inner exceptions that should be included.</param>
+        /// <returns></returns>
+        private object GetInnerExceptions(Exception innerException, int deep)
+        {
+            if (innerException == null || deep <= 0) return null;
+            dynamic ex = new
+            {
+                innerExceptionType = innerException.GetType().FullName,
+                innerExceptionMessage = innerException.Message,
+                innerStacktrace = innerException.StackTrace,
+                innerException = --deep > 0 ? GetInnerExceptions(innerException.InnerException, deep) : null
+            };
+            return ex;
         }
 
         /// <summary>
