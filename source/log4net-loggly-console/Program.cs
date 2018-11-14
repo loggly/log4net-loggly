@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Threading;
 using log4net;
 using log4net.Core;
@@ -20,12 +22,13 @@ namespace log4net_loggly_console
     }
 
     class Program
-	{
+    {
         static void Main(string[] argArray)
         {
             GlobalContext.Properties["GlobalContextPropertySample"] = new GlobalContextTest();
 
-            log4net.Config.XmlConfigurator.Configure();
+            var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
+            log4net.Config.XmlConfigurator.Configure(logRepository,new FileInfo("app.config"));
 
             var log = LogManager.GetLogger(typeof(Program));
 
@@ -79,11 +82,11 @@ namespace log4net_loggly_console
             newThread2.Start();
 
             //Test self referencing
-			var parent = new Person { Name = "John Smith" };
-			var child1 = new Person { Name = "Bob Smith", Parent = parent };
-			var child2 = new Person { Name = "Suzy Smith", Parent = parent };
-			parent.Children = new List<Person> { child1, child2 };
-			log.Info(parent);
+            var parent = new Person { Name = "John Smith" };
+            var child1 = new Person { Name = "Bob Smith", Parent = parent };
+            var child2 = new Person { Name = "Suzy Smith", Parent = parent };
+            parent.Children = new List<Person> { child1, child2 };
+            log.Info(parent);
 
             log.Debug("zzzz");
             log.InfoFormat("Loggly is the best {0} to collect Logs.", "service");
@@ -123,5 +126,5 @@ namespace log4net_loggly_console
 
             Console.ReadKey();
         }
-	}
+    }
 }
