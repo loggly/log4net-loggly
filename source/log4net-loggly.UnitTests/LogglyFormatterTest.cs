@@ -73,7 +73,7 @@
             [Fact]
             public void ShouldAddAMessagePropertyForEventsWithoutMessages()
             {
-                var evt = _fixture.Create<LoggingEvent>();
+                var evt = new LoggingEvent(new LoggingEventData() { Level = Level.Info });
                 var instance = _fixture.Create<LogglyFormatter>();
 
                 var result = instance.ToJson(evt);
@@ -134,7 +134,7 @@
             {
                 var evt = new LoggingEvent(
                     GetType(),
-                    Mock.Of<ILoggerRepository>(),
+                    null,
                     _fixture.Create("loggerName"),
                     _fixture.Create<Level>(),
                     _fixture.Create<ComplexType>(),
@@ -160,7 +160,7 @@
                 var result = instance.ToJson(evt);
                 Action act = () => JObject.Parse(result);
 
-                act.ShouldNotThrow<JsonException>("because the result should be a valid json document");
+                act.Should().NotThrow<JsonException>("because the result should be a valid json document");
             }
 
             [Fact]

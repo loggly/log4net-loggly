@@ -6,10 +6,50 @@ using System.Linq;
 
 namespace log4net.loggly
 {
+    internal interface ILogglyHttpClient
+    {
+        void Send(ILogglyAppenderConfig config, string tag, string message);
+    }
+
+    internal class LogglyHttpClient : ILogglyHttpClient
+    {
+        public void Send(ILogglyAppenderConfig config, string tag, string message)
+        {
+            var webRequest = CreateWebRequest(config, tag);
+            using (var dataStream = webRequest.GetRequestStream())
+            {
+                var bytes = Encoding.UTF8.GetBytes(message);
+                dataStream.Write(bytes, 0, bytes.Length);
+                dataStream.Flush();
+                dataStream.Close();
+            }
+            var webResponse = (HttpWebResponse)webRequest.GetResponse();
+            webResponse.Close();
+        }
+
+        private HttpWebRequest CreateWebRequest(ILogglyAppenderConfig config, string tag)
+        {
+            var url = String.Concat(config.RootUrl, config.LogMode, config.InputKey);
+            //adding userAgent as tag in the log
+            url = String.Concat(url, "/tag/" + tag);
+            HttpWebRequest request = null;
+            request = (HttpWebRequest)WebRequest.Create(url);
+            request.Method = "POST";
+            request.ReadWriteTimeout = request.Timeout = config.TimeoutInSeconds * 1000;
+            request.UserAgent = config.UserAgent;
+            request.KeepAlive = true;
+            request.ContentType = "application/json";
+            return request;
+        }
+    }
+
     public class LogglyClient : ILogglyClient
     {
         bool isValidToken = true;
         public LogglyStoreLogsInBuffer _storeLogsInBuffer = new LogglyStoreLogsInBuffer();
+
+        // This is internal to allow integration tests provide mock implementation
+        internal static ILogglyHttpClient HttpClient { get; set; } = new LogglyHttpClient();
 
         public void setTokenValid(bool flag)
         {
@@ -43,9 +83,6 @@ namespace log4net.loggly
             string _tag = config.Tag;
             bool isBulk = config.LogMode.Contains("bulk");
 
-            HttpWebResponse webResponse;
-            HttpWebRequest webRequest;
-
             //keeping userAgent backward compatible
             if (!string.IsNullOrWhiteSpace(config.UserAgent))
             {
@@ -57,17 +94,7 @@ namespace log4net.loggly
                 totalRetries++;
                 try
                 {
-                    var bytes = Encoding.UTF8.GetBytes(message);
-                    webRequest = CreateWebRequest(config, _tag);
-
-                    using (var dataStream = webRequest.GetRequestStream())
-                    {
-                        dataStream.Write(bytes, 0, bytes.Length);
-                        dataStream.Flush();
-                        dataStream.Close();
-                    }
-                    webResponse = (HttpWebResponse)webRequest.GetResponse();
-                    webResponse.Close();
+                    HttpClient.Send(config, _tag, message);
                     break;
                 }
 
@@ -101,8 +128,6 @@ namespace log4net.loggly
 
                 finally
                 {
-                    webRequest = null;
-                    webResponse = null;
                     GC.Collect();
                 }
             }
@@ -119,33 +144,9 @@ namespace log4net.loggly
                 {
                     _tag = _tag + "," + config.UserAgent;
                 }
-                var bytes = Encoding.UTF8.GetBytes(message);
-                var webRequest = CreateWebRequest(config, _tag);
 
-                using (var dataStream = webRequest.GetRequestStream())
-                {
-                    dataStream.Write(bytes, 0, bytes.Length);
-                    dataStream.Flush();
-                    dataStream.Close();
-                }
-                var webResponse = (HttpWebResponse)webRequest.GetResponse();
-                webResponse.Close();
+                HttpClient.Send(config, _tag, message);
             }
-        }
-
-        protected virtual HttpWebRequest CreateWebRequest(ILogglyAppenderConfig config, string tag)
-        {
-            var url = String.Concat(config.RootUrl, config.LogMode, config.InputKey);
-            //adding userAgent as tag in the log
-            url = String.Concat(url, "/tag/" + tag);
-            HttpWebRequest request = null;
-            request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = "POST";
-            request.ReadWriteTimeout = request.Timeout = config.TimeoutInSeconds * 1000;
-            request.UserAgent = config.UserAgent;
-            request.KeepAlive = true;
-            request.ContentType = "application/json";
-            return request;
         }
     }
 }

@@ -15,6 +15,7 @@ namespace log4net.loggly
     {
         private readonly Process _currentProcess;
 
+        // TODO: Make configurable? Is it documented?
         public int EVENT_SIZE = 1000 * 1000;
 
         public LogglyFormatter()
@@ -117,6 +118,11 @@ namespace log4net.loggly
             var message = string.Empty;
             objInfo = null;
             var bytesLengthAllowedToLoggly = EVENT_SIZE;
+
+            if (loggingEvent.MessageObject != null)
+            {
+                objInfo = loggingEvent.MessageObject;
+            }
 
             if (!string.IsNullOrEmpty(loggingEvent.RenderedMessage))
             {
