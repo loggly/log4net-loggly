@@ -21,8 +21,8 @@ Add the following code in your web.config to configure LogglyAppender in your ap
     </root>
     <appender name="LogglyAppender" type="log4net.loggly.LogglyAppender, log4net-loggly">
       <rootUrl value="https://logs-01.loggly.com/" />
-      <inputKey value="your-customer-token" />
-      <tag value="your-custom-tag" />
+      <customerToken value="your-customer-token" />
+      <tag value="your-custom-tags-separated-by-comma" />
       <logicalThreadContextKeys value="lkey1,lkey2" /> <!-- optional -->
       <globalContextKeys value="gkey1,gkey2" /> <!-- optional -->
       <numberOfInnerExceptions value="4"/> <!-- optional -->
@@ -139,8 +139,8 @@ dotnet add package log4net-loggly
     </root>
     <appender name="LogglyAppender" type="log4net.loggly.LogglyAppender, log4net-loggly">
       <rootUrl value="https://logs-01.loggly.com/" />
-      <inputKey value="your-customer-token" />
-      <tag value="your-custom-tag" />
+      <customerToken value="your-customer-token" />
+      <tag value="your-custom-tags-separated-by-comma" />
       <logicalThreadContextKeys value="lkey1,lkey2" /> <!-- optional -->
       <globalContextKeys value="gkey1,gkey2" /> <!-- optional -->
     </appender>

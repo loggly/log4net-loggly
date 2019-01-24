@@ -27,8 +27,9 @@ namespace log4net_loggly_console
         {
             GlobalContext.Properties["GlobalContextPropertySample"] = new GlobalContextTest();
 
+            var currentFileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
             var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
-            log4net.Config.XmlConfigurator.Configure(logRepository,new FileInfo("app.config"));
+            log4net.Config.XmlConfigurator.Configure(logRepository, new FileInfo(currentFileName + ".config"));
 
             var log = LogManager.GetLogger(typeof(Program));
 
@@ -124,7 +125,8 @@ namespace log4net_loggly_console
                 log.Error("Exception", e);
             }
 
-            Console.ReadKey();
+            log.Info("This is the last message. Program will terminate now.");
+            log.Logger.Repository.Shutdown();
         }
     }
 }

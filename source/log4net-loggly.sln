@@ -9,7 +9,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "log4net-loggly.UnitTests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "log4net-loggly-console", "log4net-loggly-console\log4net-loggly-console.csproj", "{D93E92BB-9584-4374-AC06-EEE7C616DC3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "log4net-loggly-stress-tool", "log4net-loggly-stress-tool\log4net-loggly-stress-tool.csproj", "{DA0CCD2C-C488-4307-AB8F-84823CA46966}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "log4net-loggly-stress-tool", "log4net-loggly-stress-tool\log4net-loggly-stress-tool.csproj", "{DA0CCD2C-C488-4307-AB8F-84823CA46966}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{9D71DE54-AC87-4E49-AE4B-9298F517E2A6}"
+	ProjectSection(SolutionItems) = preProject
+		..\README.md = ..\README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

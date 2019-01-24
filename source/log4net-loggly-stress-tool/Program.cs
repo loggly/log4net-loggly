@@ -19,9 +19,8 @@ namespace log4net_loggly_stress_tool
         {
             var commandLine = CommandLineArgs.Parse(args);
 
-            var client = new TestHttpClient(commandLine.SendDelay);
             // use test HTTP layer
-            LogglyClient.HttpClient = client;
+            LogglyClient.WebRequestFactory = (config, url) => new TestHttpClient(commandLine.SendDelay);
 
             var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
             log4net.Config.XmlConfigurator.Configure(logRepository);
@@ -46,7 +45,7 @@ namespace log4net_loggly_stress_tool
 
             watch.Stop();
 
-            Console.WriteLine("Test finished. Elasped: {0}", watch.Elapsed);
+            Console.WriteLine("Test finished. Elapsed: {0}, Throughput: {1} logs/s", watch.Elapsed, _count*1000 / watch.Elapsed.TotalMilliseconds);
         }
 
         private static void SendContinuously(CommandLineArgs commandLine, Exception exception)
@@ -54,7 +53,7 @@ namespace log4net_loggly_stress_tool
             long currentCount = 0;
             while ((currentCount = Interlocked.Increment(ref _count)) <= commandLine.NumEvents)
             {
-                if (currentCount % 1000 == 0)
+                if (currentCount % 2000 == 0)
                 {
                     Console.WriteLine("Sent: {0}", currentCount);
                 }

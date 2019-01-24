@@ -1,22 +1,15 @@
-using System.Collections.Generic;
 using log4net.Core;
-using System;
 
 namespace log4net.loggly
 {
-    public interface ILogglyFormatter
+    internal interface ILogglyFormatter
     {
-        void AppendAdditionalLoggingInformation(ILogglyAppenderConfig unknown, LoggingEvent loggingEvent);
-        string ToJson(LoggingEvent loggingEvent);
-        string ToJson(IEnumerable<LoggingEvent> loggingEvents);
-
         /// <summary>
-        /// Merged Layout formatted log with the formatted timestamp
+        /// Format event as JSON.
         /// </summary>
-        /// <param name="renderedLog"></param>
-        /// <param name="timeStamp"></param>
+        /// <param name="loggingEvent">Event to format</param>
+        /// <param name="renderedMessage">Event message rendered by log4net.</param>
         /// <returns></returns>
-        string ToJson(string renderedLog, DateTime timeStamp);
-
+        string ToJson(LoggingEvent loggingEvent, string renderedMessage);
     }
 }

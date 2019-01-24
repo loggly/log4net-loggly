@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using FluentAssertions;
 using FluentAssertions.Json;
@@ -15,54 +17,66 @@ using log4net.Util;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 
 namespace log4net_loggly.UnitTests
 {
     [UsedImplicitly]
     [SuppressMessage("ReSharper", "StringLiteralTypo")]
-    public class IntegrationTest
+    public abstract class IntegrationTest
     {
-        private readonly ManualResetEvent _messageSent;
-        private string _message;
-        private ILog _log;
+        protected internal const string TestThreadName = "MyTestThread";
 
-        public IntegrationTest()
+        private readonly ManualResetEvent _messageSent;
+        protected ILog _log;
+        protected readonly LogglyAppender _logglyAppender;
+        private readonly MemoryStream _messageStream;
+
+        protected IntegrationTest()
         {
             // setup HTTP client mock so that we can wait for sent message and inspect it
             _messageSent = new ManualResetEvent(false);
-            _message = null;
-            var clientMock = new Mock<ILogglyHttpClient>();
-            clientMock.Setup(x => x.Send(It.IsAny<ILogglyAppenderConfig>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Callback<ILogglyAppenderConfig, string, string>((_, t, m) =>
-                {
-                    _message = m;
-                    _messageSent.Set();
-                });
 
-            // use mocked HTTP layer
-            LogglyClient.HttpClient = clientMock.Object;
-            // don't wait seconds for logs to be sent
-            LogglyAppender.SendInterval = TimeSpan.FromMilliseconds(10);
+            _messageStream = new MemoryStream();
+            var webRequestMock = new Mock<WebRequest>();
+            webRequestMock.Setup(x => x.GetRequestStream()).Returns(_messageStream);
+            webRequestMock.Setup(x => x.GetResponse())
+                .Returns(() =>
+                {
+                    _messageSent.Set();
+                    return Mock.Of<WebResponse>();
+                });
+           
+            // use mocked web request
+            LogglyClient.WebRequestFactory = (config, url) => webRequestMock.Object;
 
             var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
             var currentFileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
-            log4net.Config.XmlConfigurator.Configure(logRepository, new FileInfo(currentFileName+".config"));
+            log4net.Config.XmlConfigurator.Configure(logRepository, new FileInfo(currentFileName + ".config"));
 
             _log = LogManager.GetLogger(GetType());
+
+            var appenders = logRepository.GetAppenders();
+            _logglyAppender = (LogglyAppender)appenders[0];
 
             ThreadContext.Properties.Clear();
             LogicalThreadContext.Properties.Clear();
             GlobalContext.Properties.Clear();
+
+            // thread name can be set just once so we need this safeguard
+            if (string.IsNullOrEmpty(Thread.CurrentThread.Name))
+            {
+                Thread.CurrentThread.Name = TestThreadName;
+            }
         }
 
         [Fact]
         public void LogContainsThreadName()
         {
-            Thread.CurrentThread.Name = "MyTestThread";
             _log.Info("test message");
 
             var message = WaitForSentMessage();
-            message.ThreadName.Should().Be("MyTestThread");
+            message.ThreadName.Should().Be(TestThreadName);
         }
 
         [Fact]
@@ -156,7 +170,7 @@ namespace log4net_loggly.UnitTests
             var message = WaitForSentMessage();
             var exception = message.ExtraProperties.Should().HaveElement("exception", "logged exception should be in the data").Which;
             AssertException(exception, thrownException);
-            AssertException(exception["innerException"], thrownException.InnerException, true);
+            AssertException(exception["innerException"], thrownException.InnerException);
         }
 
         [Fact]
@@ -231,7 +245,7 @@ namespace log4net_loggly.UnitTests
         }
 
         [Fact]
-        public void LogContainsGlobalContextProperties()
+        public void LogContainsSelectedGlobalContextProperties()
         {
             GlobalContext.Properties["gkey1"] = "MyValue1";
             GlobalContext.Properties["gkey2"] = new TestItem { IntProperty = 123, StringProperty = "test string" };
@@ -264,7 +278,7 @@ namespace log4net_loggly.UnitTests
                     _log.Info("test message");
                 }
             }
-                var expectedJson = @"
+            var expectedJson = @"
 {
 ""TestStack1"": ""TestStackValue1 TestStackValue3"",
 ""TestStack2"": ""TestStackValue2""
@@ -295,7 +309,7 @@ namespace log4net_loggly.UnitTests
             message.ExtraProperties.Should().BeEquivalentTo(JObject.Parse(expectedJson));
         }
 
-        [Fact(Skip = "The logic is currently wrong, this test does not pass.")]
+        [Fact]
         public void EventContextHasHighestPriority()
         {
             GlobalContext.Properties["CommonProperty"] = "GlobalContext";
@@ -315,7 +329,7 @@ namespace log4net_loggly.UnitTests
                 .Which.Value<string>().Should().Be("EventContext");
         }
 
-        [Fact(Skip = "The logic is currently wrong, this test does not pass.")]
+        [Fact]
         public void LogicalThreadContextHasSecondHighestPriority()
         {
             GlobalContext.Properties["CommonProperty"] = "GlobalContext";
@@ -330,7 +344,7 @@ namespace log4net_loggly.UnitTests
                 .Which.Value<string>().Should().Be("LogicalThreadContext");
         }
 
-        [Fact(Skip = "The logic is currently wrong, this test does not pass.")]
+        [Fact]
         public void ThreadContextHaveThirdHighestPriority()
         {
             GlobalContext.Properties["CommonProperty"] = "GlobalContext";
@@ -372,39 +386,12 @@ namespace log4net_loggly.UnitTests
         }
 
         [Fact]
-        public void SendPlainString_SendsItAsPlainString()
-        {
-            _log.Info("test message");
-
-            var message = WaitForSentMessage();
-            message.Message.Should().Be("test message", "request should contain original log message");
-        }
-
-        [Fact]
-        public void SendFormattedString_SendsItProperlyFormatted()
-        {
-            _log.InfoFormat("Test message: {0:D2}", 3);
-
-            var message = WaitForSentMessage();
-            message.Message.Should().Be("Test message: 03");
-        }
-
-        [Fact]
         public void SendPlainString_DoesNotHaveAnyExtraProperties()
         {
             _log.Info("test message");
 
             var message = WaitForSentMessage();
             message.ExtraProperties.Should().HaveCount(0);
-        }
-
-        [Fact]
-        public void SendNull_SendsNullString()
-        {
-            _log.Info(null);
-
-            var message = WaitForSentMessage();
-            message.Message.Should().Be("null");
         }
 
         [Fact]
@@ -472,7 +459,6 @@ namespace log4net_loggly.UnitTests
             message.ExtraProperties.Should().BeEquivalentTo(JObject.Parse(expectedJson));
         }
 
-
         [Fact]
         public void LogContainsFixedValues()
         {
@@ -484,97 +470,31 @@ namespace log4net_loggly.UnitTests
             message.ExtraProperties["TestFixValue"].Should().HaveValue("fixed value", "type of this value requires fixing");
         }
 
-        #region Tests for logc that is wrong
-        // TODO: This logic is wrong, context priorities are opposite to what they should be.
-        // These tests are here just to cover current functionality before refactoring.
-        [Fact]
-        public void GlobalContextHasHighestPriority_Wrong()
+        protected SentMessage WaitForSentMessage()
         {
-            GlobalContext.Properties["CommonProperty"] = "GlobalContext";
-            ThreadContext.Properties["CommonProperty"] = "ThreadContext";
-            LogicalThreadContext.Properties["CommonProperty"] = "LogicalThreadContext";
-            var data = new LoggingEventData
-            {
-                Level = Level.Info,
-                Message = "test message",
-                Properties = new PropertiesDictionary()
-            };
-            data.Properties["CommonProperty"] = "EventContext";
-            _log.Logger.Log(new LoggingEvent(data));
-
-            var message = WaitForSentMessage();
-            message.ExtraProperties.Should().HaveElement("CommonProperty")
-                .Which.Value<string>().Should().Be("GlobalContext");
+            _messageSent.WaitOne(TimeSpan.FromSeconds(10)).Should().BeTrue("Log message should have been sent already.");
+            var message = Encoding.UTF8.GetString(_messageStream.ToArray());
+            return new SentMessage(message);
         }
 
-        [Fact]
-        public void LogicalThreadContextHasSecondHighestPriority_Wrong()
+        private void AssertException(JToken exception, Exception expectedException)
         {
-            // no global context
-            LogicalThreadContext.Properties["CommonProperty"] = "LogicalThreadContext";
-            ThreadContext.Properties["CommonProperty"] = "ThreadContext";
-
-            var data = new LoggingEventData
-            {
-                Level = Level.Info,
-                Message = "test message",
-                Properties = new PropertiesDictionary()
-            };
-            data.Properties["CommonProperty"] = "EventContext";
-            _log.Logger.Log(new LoggingEvent(data));
-
-            var message = WaitForSentMessage();
-            message.ExtraProperties.Should().HaveElement("CommonProperty")
-                .Which.Value<string>().Should().Be("LogicalThreadContext");
-        }
-
-        [Fact]
-        public void ThreadContextHasThirdHighestPriority_Wrong()
-        {
-            // no global or logical thread contexts
-            ThreadContext.Properties["CommonProperty"] = "ThreadContext";
-
-            var data = new LoggingEventData
-            {
-                Level = Level.Info,
-                Message = "test message",
-                Properties = new PropertiesDictionary()
-            };
-            data.Properties["CommonProperty"] = "EventContext";
-            _log.Logger.Log(new LoggingEvent(data));
-
-            var message = WaitForSentMessage();
-            message.ExtraProperties.Should().HaveElement("CommonProperty")
-                .Which.Value<string>().Should().Be("ThreadContext");
-        }
-        #endregion
-
-        private SentMessage WaitForSentMessage()
-        {
-            _messageSent.WaitOne(TimeSpan.FromSeconds(30)).Should().BeTrue("Log message should have been sent already.");
-            return new SentMessage(_message);
-        }
-
-        private void AssertException(JToken exception, Exception expectedException, bool inner = false)
-        {
-            exception.Value<string>(inner ? "innerExceptionType" : "exceptionType").Should()
+            exception.Value<string>("exceptionType").Should()
                 .Be(expectedException.GetType().FullName, "exception type should be correct");
-            exception.Value<string>(inner ? "innerExceptionMessage" : "exceptionMessage").Should().Be(expectedException.Message, "exception message should be correct");
-            exception.Value<string>(inner ? "innerStacktrace" : "stacktrace").Should().Contain(expectedException.StackTrace, "exception stack trace should be correct");
+            exception.Value<string>("exceptionMessage").Should().Be(expectedException.Message, "exception message should be correct");
+            exception.Value<string>("stacktrace").Should().Contain(expectedException.StackTrace, "exception stack trace should be correct");
         }
 
-        public static IEnumerable<object> LogLevels
-        {
-            get
+        public static IEnumerable<object[]> LogLevels =>
+            new[]
             {
-                yield return new[] { Level.Debug };
-                yield return new[] { Level.Info };
-                yield return new[] { Level.Warn };
-                yield return new[] { Level.Error };
-            }
-        }
+                new[] {Level.Debug},
+                new[] {Level.Info},
+                new[] {Level.Warn},
+                new[] {Level.Error}
+            };
 
-        private class SentMessage
+        protected class SentMessage
         {
             public SentMessage(string json)
             {
@@ -592,7 +512,7 @@ namespace log4net_loggly.UnitTests
                 jsonObject.Remove("threadName");
                 LoggerName = jsonObject["loggerName"].Value<string>();
                 jsonObject.Remove("loggerName");
-                Message = jsonObject["message"].Value<string>();
+                Message = jsonObject["message"]?.Value<string>();
                 jsonObject.Remove("message");
                 // anything that is dynamic goes as whole remaining JSON object to special property
                 ExtraProperties = jsonObject;

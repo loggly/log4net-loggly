@@ -1,10 +1,11 @@
 ﻿using System;
+using System.IO;
+using System.Net;
 using System.Threading;
-using log4net.loggly;
 
 namespace log4net_loggly_stress_tool
 {
-    internal class TestHttpClient : ILogglyHttpClient
+    internal class TestHttpClient : WebRequest
     {
         private readonly TimeSpan _sendDelay;
 
@@ -13,9 +14,19 @@ namespace log4net_loggly_stress_tool
             _sendDelay = sendDelay;
         }
 
-        public void Send(ILogglyAppenderConfig config, string tag, string message)
+        public override WebResponse GetResponse()
         {
             Thread.Sleep(_sendDelay);
+            return new TestResponse();
+        }
+
+        public override Stream GetRequestStream()
+        {
+            return new MemoryStream();
+        }
+
+        private class TestResponse : WebResponse
+        {
         }
     }
 }
