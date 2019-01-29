@@ -3,11 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.10
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "log4net-loggly", "log4net-loggly\log4net-loggly.csproj", "{23BE5AFC-9598-4ECB-8B09-06B6D841B36D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "log4net-loggly", "log4net-loggly\log4net-loggly.csproj", "{23BE5AFC-9598-4ECB-8B09-06B6D841B36D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "log4net-loggly.UnitTests", "log4net-loggly.UnitTests\log4net-loggly.UnitTests.csproj", "{24227290-2834-4C4F-A1EA-4E5F2B28C080}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "log4net-loggly.UnitTests", "log4net-loggly.UnitTests\log4net-loggly.UnitTests.csproj", "{24227290-2834-4C4F-A1EA-4E5F2B28C080}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "log4net-loggly-console", "log4net-loggly-console\log4net-loggly-console.csproj", "{D93E92BB-9584-4374-AC06-EEE7C616DC3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "log4net-loggly-console", "log4net-loggly-console\log4net-loggly-console.csproj", "{D93E92BB-9584-4374-AC06-EEE7C616DC3D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "log4net-loggly-stress-tool", "log4net-loggly-stress-tool\log4net-loggly-stress-tool.csproj", "{DA0CCD2C-C488-4307-AB8F-84823CA46966}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{9D71DE54-AC87-4E49-AE4B-9298F517E2A6}"
+	ProjectSection(SolutionItems) = preProject
+		..\README.md = ..\README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +34,10 @@ Global
 		{D93E92BB-9584-4374-AC06-EEE7C616DC3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D93E92BB-9584-4374-AC06-EEE7C616DC3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D93E92BB-9584-4374-AC06-EEE7C616DC3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA0CCD2C-C488-4307-AB8F-84823CA46966}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA0CCD2C-C488-4307-AB8F-84823CA46966}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA0CCD2C-C488-4307-AB8F-84823CA46966}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA0CCD2C-C488-4307-AB8F-84823CA46966}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

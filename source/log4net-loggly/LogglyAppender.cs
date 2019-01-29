@@ -1,106 +1,134 @@
 ﻿using log4net.Appender;
 using log4net.Core;
 using System;
-using System.Collections.Generic;
-using Timer = System.Timers;
-
-
 
 namespace log4net.loggly
 {
     public class LogglyAppender : AppenderSkeleton
     {
-        List<string> lstLogs = new List<string>();
-        string[] arr = new string[100];
-        public readonly string InputKeyProperty = "LogglyInputKey";
-        public ILogglyFormatter Formatter = new LogglyFormatter();
-        public ILogglyClient Client = new LogglyClient();
-        public LogglySendBufferedLogs _sendBufferedLogs = new LogglySendBufferedLogs();
-        private ILogglyAppenderConfig Config = new LogglyAppenderConfig();
-        public string RootUrl { set { Config.RootUrl = value; } }
-        public string InputKey { set { Config.InputKey = value; } }
-        public string UserAgent { set { Config.UserAgent = value; } }
-        public string LogMode { set { Config.LogMode = value; } }
-        public int TimeoutInSeconds { set { Config.TimeoutInSeconds = value; } }
-        public string Tag { set { Config.Tag = value; } }
-        public string LogicalThreadContextKeys { set { Config.LogicalThreadContextKeys = value; } }
-        public string GlobalContextKeys { set { Config.GlobalContextKeys = value; } }
-        public int BufferSize { set { Config.BufferSize = value; } }
-        public int NumberOfInnerExceptions { set { Config.NumberOfInnerExceptions = value; } }
-
-        private LogglyAsyncHandler LogglyAsync;
+        private ILogglyFormatter _formatter;
+        private ILogglyAsyncBuffer _buffer;
+        private readonly Config _config;
+        private ILogglyClient _client;
 
         public LogglyAppender()
         {
-            LogglyAsync = new LogglyAsyncHandler();
-            Timer.Timer t = new Timer.Timer();
-            t.Interval = 5000;
-            t.Enabled = true;
-            t.Elapsed += t_Elapsed;
+            _config = new Config();
         }
 
-        void t_Elapsed(object sender, Timer.ElapsedEventArgs e)
+        internal LogglyAppender(Config config, ILogglyFormatter formatter, ILogglyAsyncBuffer buffer)
+            : this()
         {
-            if (lstLogs.Count != 0)
-            {
-                SendAllEvents(lstLogs.ToArray());
-            }
-            _sendBufferedLogs.sendBufferedLogsToLoggly(Config, Config.LogMode == "bulk/");
+            _config = config;
+            _formatter = formatter;
+            _buffer = buffer;
+        }
+
+        public override void ActivateOptions()
+        {
+            base.ActivateOptions();
+            _formatter = _formatter ?? new LogglyFormatter(_config);
+            _client = new LogglyClient(_config);
+            _buffer = _buffer ?? new LogglyAsyncBuffer(_config, _client);
         }
 
         protected override void Append(LoggingEvent loggingEvent)
         {
-            SendLogAction(loggingEvent);
+            // We should always format event in the same thread as 
+            // many properties used in the event are associated with the current thread.
+
+            // if user defined layout let it render the message based on layout, otherwise get message from event
+            var renderedMessage = Layout != null
+                ? RenderLoggingEvent(loggingEvent)
+                : loggingEvent.RenderedMessage;
+
+            var formattedLog = _formatter.ToJson(loggingEvent, renderedMessage);
+            if (formattedLog != null)
+            {
+                _buffer.BufferForSend(formattedLog);
+            }
         }
 
-        private void SendLogAction(LoggingEvent loggingEvent)
+        public override bool Flush(int millisecondsTimeout)
         {
-            //we should always format event in the same thread as 
-            //many properties used in the event are associated with the current thread
-            //like threadname, ndc stacks, threadcontent properties etc.
-
-            //initializing a string for the formatted log
-            string _formattedLog = string.Empty;
-
-            //if Layout is null then format the log from the Loggly Client
-            if (this.Layout == null)
-            {
-                Formatter.AppendAdditionalLoggingInformation(Config, loggingEvent);
-                _formattedLog = Formatter.ToJson(loggingEvent);
-            }
-            else
-            {
-                _formattedLog = Formatter.ToJson(RenderLoggingEvent(loggingEvent), loggingEvent.TimeStamp);
-            }
-
-            //check if logMode is bulk or inputs
-            if (Config.LogMode == "bulk/")
-            {
-                addToBulk(_formattedLog);
-            }
-            else if (Config.LogMode == "inputs/")
-            {
-                //sending _formattedLog to the async queue
-                LogglyAsync.PostMessage(_formattedLog, Config);
-            }
+            return _buffer.Flush(TimeSpan.FromMilliseconds(millisecondsTimeout));
         }
 
-        public void addToBulk(string log)
+        protected override void OnClose()
         {
-            // store all events into a array max lenght is 100
-            lstLogs.Add(log.Replace("\n", ""));
-            if (lstLogs.Count == 100)
-            {
-                SendAllEvents(lstLogs.ToArray());
-            }
+            base.OnClose();
+            _buffer.Flush(_config.FinalFlushWaitTime);
+            _buffer.Dispose();
+            _buffer = null;
         }
 
-        private void SendAllEvents(string[] events)
+        #region Configuration properties
+        public string RootUrl
         {
-            lstLogs.Clear();
-            String bulkLog = String.Join(System.Environment.NewLine, events);
-            LogglyAsync.PostMessage(bulkLog, Config);
+            get => _config.RootUrl;
+            set => _config.RootUrl = value;
         }
 
+        [Obsolete("This is old config key for customer token. It's now suggested to use more readable 'customerToken'")]
+        public string InputKey
+        {
+            get => CustomerToken;
+            set => CustomerToken = value;
+        }
+
+        public string CustomerToken
+        {
+            get => _config.CustomerToken;
+            set => _config.CustomerToken = value;
+        }
+
+        public string UserAgent
+        {
+            get => _config.UserAgent;
+            set => _config.UserAgent = value;
+        }
+
+        public int TimeoutInSeconds
+        {
+            get => _config.TimeoutInSeconds;
+            set => _config.TimeoutInSeconds = value;
+        }
+
+        public string Tag
+        {
+            get => _config.Tag;
+            set => _config.Tag = value;
+        }
+
+        public string LogicalThreadContextKeys
+        {
+            get => _config.LogicalThreadContextKeys;
+            set => _config.LogicalThreadContextKeys = value;
+        }
+
+        public string GlobalContextKeys
+        {
+            get => _config.GlobalContextKeys;
+            set => _config.GlobalContextKeys = value;
+        }
+
+        public int BufferSize
+        {
+            get => _config.BufferSize;
+            set => _config.BufferSize = value;
+        }
+
+        public TimeSpan SendInterval
+        {
+            get => _config.SendInterval;
+            set => _config.SendInterval = value;
+        }
+
+        public int NumberOfInnerExceptions
+        {
+            get => _config.NumberOfInnerExceptions;
+            set => _config.NumberOfInnerExceptions = value;
+        }
+        #endregion
     }
 }

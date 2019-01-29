@@ -27,8 +27,9 @@ namespace log4net_loggly_console
         {
             GlobalContext.Properties["GlobalContextPropertySample"] = new GlobalContextTest();
 
+            var currentFileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
             var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
-            log4net.Config.XmlConfigurator.Configure(logRepository,new FileInfo("app.config"));
+            log4net.Config.XmlConfigurator.Configure(logRepository, new FileInfo(currentFileName + ".config"));
 
             var log = LogManager.GetLogger(typeof(Program));
 
@@ -88,7 +89,11 @@ namespace log4net_loggly_console
             parent.Children = new List<Person> { child1, child2 };
             log.Info(parent);
 
-            log.Debug("zzzz");
+            log.Debug(@"This
+is
+some
+multiline
+log");
             log.InfoFormat("Loggly is the best {0} to collect Logs.", "service");
             log.Info(new { type1 = "newcustomtype", value1 = "newcustomvalue" });
             log.Info(new TestObject());
@@ -124,7 +129,8 @@ namespace log4net_loggly_console
                 log.Error("Exception", e);
             }
 
-            Console.ReadKey();
+            log.Info("This is the last message. Program will terminate now.");
+            log.Logger.Repository.Shutdown();
         }
     }
 }
