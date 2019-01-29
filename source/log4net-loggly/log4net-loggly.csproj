@@ -4,7 +4,7 @@
     <DebugType>full</DebugType>
     <TargetFrameworks>netstandard2.0;net40</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>9.0.0</Version>
+    <Version>9.0.0-beta1</Version>
     <Authors>Loggly</Authors>
     <Company>Loggly</Company>
     <PackageLicenseUrl>http://opensource.org/licenses/MIT</PackageLicenseUrl>
