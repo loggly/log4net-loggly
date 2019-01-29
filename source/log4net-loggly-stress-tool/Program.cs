@@ -36,9 +36,10 @@ namespace log4net_loggly_stress_tool
 
             var watch = Stopwatch.StartNew();
             var tasks = new List<Task>(commandLine.NumLoggingThreads);
+            int logsPerSecondPerThread = (int)Math.Ceiling((double)commandLine.LogsPerSecond / commandLine.NumLoggingThreads);
             for (int i = 0; i < commandLine.NumLoggingThreads; i++)
             {
-                tasks.Add(Task.Factory.StartNew(() => SendContinuously(commandLine, exception), TaskCreationOptions.LongRunning));
+                tasks.Add(Task.Factory.StartNew(() => SendContinuously(commandLine, exception, logsPerSecondPerThread), TaskCreationOptions.LongRunning));
             }
 
             Task.WaitAll(tasks.ToArray());
@@ -46,14 +47,18 @@ namespace log4net_loggly_stress_tool
             watch.Stop();
 
             Console.WriteLine("Test finished. Elapsed: {0}, Throughput: {1} logs/s", watch.Elapsed, _count*1000 / watch.Elapsed.TotalMilliseconds);
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
         }
 
-        private static void SendContinuously(CommandLineArgs commandLine, Exception exception)
+        private static void SendContinuously(CommandLineArgs commandLine, Exception exception, int logsPerSecond)
         {
-            long currentCount = 0;
+            long currentCount;
+            Stopwatch watch = Stopwatch.StartNew();
+            int countThisSecond = 0;
             while ((currentCount = Interlocked.Increment(ref _count)) <= commandLine.NumEvents)
             {
-                if (currentCount % 2000 == 0)
+                if (currentCount % 1000 == 0)
                 {
                     Console.WriteLine("Sent: {0}", currentCount);
                 }
@@ -73,6 +78,14 @@ namespace log4net_loggly_stress_tool
                         "et ante tincidunt venenatis. Ut pretium, mi laoreet fringilla egestas, mauris quam lacinia dolor, " +
                         "eu maximus nisi mauris vel lorem. Duis a ex eu orci consectetur congue sed sit amet ligula. " +
                         "Aenean congue mollis quam volutpat varius.");
+                }
+
+                // if rate limiting is applied then sleep remainder of the current second before moving on
+                if (logsPerSecond > 0 && ++countThisSecond >= logsPerSecond)
+                {
+                    Thread.Sleep(1000 - Math.Min(1000, (int)watch.ElapsedMilliseconds));
+                    countThisSecond = 0;
+                    watch.Restart();
                 }
             }
         }
