@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Net;
 using System.Text;
 
@@ -10,7 +9,6 @@ namespace log4net.loggly
         private readonly Config _config;
         private bool _isTokenValid = true;
         private readonly string _url;
-        private const string SinglePath = "inputs/";
         private const string BulkPath = "bulk/";
 
         // exposing way how web request is created to allow integration testing
@@ -72,7 +70,7 @@ namespace log4net.loggly
                 sb.Append("/");
             }
 
-            sb.Append(config.SendMode == SendMode.Single ? SinglePath : BulkPath);
+            sb.Append(BulkPath);
             sb.Append(config.CustomerToken);
             sb.Append("/tag/");
             sb.Append(tag);

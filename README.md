@@ -86,12 +86,6 @@ This flushes any pending messages.
 
 ## Advanced configuration
 
-By default, library uses Loggly `/bulk` end point (https://www.loggly.com/docs/http-bulk-endpoint/). To use `/inputs` endpoint, add the following configuration to config file to `<appender>` section
-
-```xml
-<logMode value="inputs" />
-```
-
 Library by default serializes and sends 4 levels of inner exceptions in case of warn/error log. If you want to change this number just add following configuration to config file to `<appender>` section
 ```xml
 <numberOfInnerExceptions value value="10"/>

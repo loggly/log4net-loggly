@@ -49,7 +49,6 @@ namespace log4net_loggly.UnitTests
             var appender = new LogglyAppender(config, Mock.Of<ILogglyFormatter>(), Mock.Of<ILogglyAsyncBuffer>());
 
             appender.RootUrl = "root-url";
-            appender.SendMode = SendMode.Single;
             appender.BufferSize = 123;
             appender.CustomerToken = "test-token";
             appender.GlobalContextKeys = "global-keys";
@@ -63,7 +62,6 @@ namespace log4net_loggly.UnitTests
             config.Should().BeEquivalentTo(new
             {
                 RootUrl = "root-url",
-                SendMode = SendMode.Single,
                 BufferSize = 123,
                 CustomerToken = "test-token",
                 GlobalContextKeys = "global-keys",
@@ -74,20 +72,6 @@ namespace log4net_loggly.UnitTests
                 TimeoutInSeconds = 123,
                 UserAgent = "user-agent"
             });
-        }
-
-        [Theory]
-        [InlineData("inputs", SendMode.Single)]
-        [InlineData("bulk", SendMode.Bulk)]
-        [InlineData("nonsense", SendMode.Bulk)]
-        public void LogModeSetsSendMode(string logMode, SendMode expectedSendMode)
-        {
-            var config = new Config();
-            var appender = new LogglyAppender(config, Mock.Of<ILogglyFormatter>(), Mock.Of<ILogglyAsyncBuffer>());
-
-            appender.LogMode = logMode;
-
-            config.SendMode.Should().Be(expectedSendMode);
         }
     }
 }

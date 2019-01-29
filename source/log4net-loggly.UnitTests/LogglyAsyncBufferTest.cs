@@ -36,7 +36,7 @@ namespace log4net_loggly.UnitTests
         public void Bulk_SendsMessagesWhenBufferSizeReached()
         {
             _config.BufferSize = 3;
-            ExpectBulkSends(1);
+            ExpectSends(1);
             var buffer = new LogglyAsyncBuffer(_config, _clientMock.Object);
 
             buffer.BufferForSend("test message 1");
@@ -53,11 +53,10 @@ namespace log4net_loggly.UnitTests
         }
 
         [Fact]
-        public void Bulk_DoesNotSendMessagesWhenBufferIsNotFullAndTimeIsNotExpired()
+        public void DoesNotSendMessagesWhenBufferIsNotFullAndTimeIsNotExpired()
         {
-            _config.SendMode = SendMode.Bulk;
             _config.BufferSize = 3;
-            ExpectBulkSends(1);
+            ExpectSends(1);
             var buffer = new LogglyAsyncBuffer(_config, _clientMock.Object);
 
             buffer.BufferForSend("test message 1");
@@ -69,12 +68,11 @@ namespace log4net_loggly.UnitTests
         }
 
         [Fact]
-        public void Bulk_SendsMessagesWhenTimeExpires()
+        public void SendsMessagesWhenTimeExpires()
         {
-            _config.SendMode = SendMode.Bulk;
             _config.BufferSize = 3;
             _config.SendInterval = TimeSpan.FromMilliseconds(500);
-            ExpectBulkSends(1);
+            ExpectSends(1);
             var buffer = new LogglyAsyncBuffer(_config, _clientMock.Object);
 
             buffer.BufferForSend("test message 1");
@@ -90,11 +88,10 @@ namespace log4net_loggly.UnitTests
         }
 
         [Fact]
-        public void Bulk_SendsAllAvailableMessages()
+        public void SendsAllAvailableMessages()
         {
-            _config.SendMode = SendMode.Bulk;
             _config.BufferSize = 3;
-            ExpectBulkSends(3);
+            ExpectSends(3);
             var buffer = new LogglyAsyncBuffer(_config, _clientMock.Object);
 
             buffer.BufferForSend("test message 1");
@@ -123,55 +120,19 @@ namespace log4net_loggly.UnitTests
         }
 
         [Fact]
-        public void Single_SendsMessagesOneByOne()
-        {
-            _config.SendMode = SendMode.Single;
-            ExpectSingleSends(3);
-            var buffer = new LogglyAsyncBuffer(_config, _clientMock.Object);
-
-            buffer.BufferForSend("test message 1");
-            buffer.BufferForSend("test message 2");
-            buffer.BufferForSend("test message 3");
-
-            _allSentEvent.Wait(MaxWaitTime).Should().BeTrue("messages should be sent");
-            _sentMessages.Should().BeEquivalentTo(new[]
-            {
-                "test message 1",
-                "test message 2",
-                "test message 3"
-            }, "correct messages should be sent");
-        }
-
-        [Fact]
-        public void Single_DoesNotBufferMessages()
-        {
-            _config.SendMode = SendMode.Single;
-            _config.BufferSize = 100;
-            ExpectSingleSends(1);
-            var buffer = new LogglyAsyncBuffer(_config, _clientMock.Object);
-
-            buffer.BufferForSend("test message 1");
-
-            _allSentEvent.Wait(MaxWaitTime).Should().BeTrue("message should be sent");
-            _sentMessages.Should().BeEquivalentTo(new[]
-            {
-                "test message 1"
-            }, "correct message should be sent");
-        }
-
-        [Fact]
         public void DiscardsOldestMessagesIfMaxQueueSizeIsSet()
         {
-            _config.SendMode = SendMode.Single;
             _config.MaxLogQueueSize = 5;
-            ExpectSingleSends(1);
+            ExpectSends(1);
             var buffer = new LogglyAsyncBuffer(_config, _clientMock.Object);
 
             _allowSendingEvent.Reset(); // block after first message sending
             buffer.BufferForSend("test message 1");
+            // trigger send without waiting for full buffer
+            buffer.Flush(TimeSpan.FromMilliseconds(10));
             _allSentEvent.Wait(MaxWaitTime).Should().BeTrue("first message should be already sent");
 
-            ExpectSingleSends(_config.MaxLogQueueSize);
+            ExpectSends(1);
 
             buffer.BufferForSend("test message 2");
             buffer.BufferForSend("test message 3");
@@ -202,9 +163,8 @@ namespace log4net_loggly.UnitTests
         [Fact]
         public void Flush_FlushesPendingMessages()
         {
-            _config.SendMode = SendMode.Bulk;
             _config.BufferSize = 3;
-            ExpectBulkSends(1);
+            ExpectSends(1);
             var buffer = new LogglyAsyncBuffer(_config, _clientMock.Object);
 
             buffer.BufferForSend("test message 1");
@@ -222,7 +182,6 @@ namespace log4net_loggly.UnitTests
         [Fact]
         public void Flush_ReturnsTrueIfAllMessagesAreSent()
         {
-            _config.SendMode = SendMode.Bulk;
             _config.BufferSize = 3;
             var buffer = new LogglyAsyncBuffer(_config, _clientMock.Object);
 
@@ -237,9 +196,8 @@ namespace log4net_loggly.UnitTests
         [Fact]
         public void Flush_ReturnsFalseIfNotAllMessagesAreSent()
         {
-            _config.SendMode = SendMode.Bulk;
             _config.BufferSize = 3;
-            ExpectBulkSends(1);
+            ExpectSends(1);
             var buffer = new LogglyAsyncBuffer(_config, _clientMock.Object);
 
             // block sending
@@ -258,13 +216,12 @@ namespace log4net_loggly.UnitTests
         {
             // message of 10 bytes, buffer for 10 messages = 100 bytes
             // max bulk size se to 30 -> bulk size should be limited by this number
-            _config.SendMode = SendMode.Bulk;
             _config.MaxBulkSizeBytes = 30;
             _config.BufferSize = 10;
             var oneMessageSize = 10;
             var oneMessage = new String('x', oneMessageSize);
 
-            ExpectBulkSends(1);
+            ExpectSends(1);
             
             var buffer = new LogglyAsyncBuffer(_config, _clientMock.Object);
 
@@ -282,25 +239,13 @@ namespace log4net_loggly.UnitTests
             }, "correct messages should be sent");
         }
 
-        private void ExpectBulkSends(int numberOfSends)
+        private void ExpectSends(int numberOfSends)
         {
             _allSentEvent = new CountdownEvent(numberOfSends);
             _clientMock.Setup(x => x.Send(It.IsAny<string[]>(), It.IsAny<int>()))
                 .Callback<string[], int>((m,c) =>
                 {
                     _sentMessages.AddRange(m.Take(c));
-                    _allSentEvent.Signal();
-                    _allowSendingEvent.WaitOne();
-                });
-        }
-
-        private void ExpectSingleSends(int numberOfSends)
-        {
-            _allSentEvent = new CountdownEvent(numberOfSends);
-            _clientMock.Setup(x => x.Send(It.IsAny<string>()))
-                .Callback<string>(m =>
-                {
-                    _sentMessages.Add(m);
                     _allSentEvent.Signal();
                     _allowSendingEvent.WaitOne();
                 });

@@ -13,7 +13,6 @@ namespace log4net.loggly
             TimeoutInSeconds = 30;
             MaxSendRetries = 3;
             Tag = "log4net";
-            SendMode = SendMode.Bulk;
             LogicalThreadContextKeys = null;
             GlobalContextKeys = null;
             BufferSize = 500;
@@ -35,20 +34,14 @@ namespace log4net.loggly
         /// Max size of whole event sent to Loggly in bytes
         /// </summary>
         public int MaxEventSizeBytes { get; set; }
-
         /// <summary>
         /// Max size ot one bulk of events sent to Loggly in bytes
         /// </summary>
         public int MaxBulkSizeBytes { get; set; }
-
         /// <summary>
         /// URL where the logs are sent
         /// </summary>
         public string RootUrl { get; set; }
-        /// <summary>
-        /// Mode of sending logs.
-        /// </summary>
-        public SendMode SendMode { get; set; }
         /// <summary>
         /// Customer token used to send the logs
         /// </summary>

@@ -9,7 +9,7 @@ namespace log4net.loggly
         private ILogglyFormatter _formatter;
         private ILogglyAsyncBuffer _buffer;
         private readonly Config _config;
-        private ILogglyClient _client = null;
+        private ILogglyClient _client;
 
         public LogglyAppender()
         {
@@ -86,18 +86,6 @@ namespace log4net.loggly
         {
             get => _config.UserAgent;
             set => _config.UserAgent = value;
-        }
-
-        public string LogMode
-        {
-            get => SendMode == SendMode.Single ? "inputs" : "bulk";
-            set => SendMode = value == "inputs" ? SendMode.Single : SendMode.Bulk;
-        }
-
-        public SendMode SendMode
-        {
-            get => _config.SendMode;
-            set => _config.SendMode = value;
         }
 
         public int TimeoutInSeconds

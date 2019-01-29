@@ -89,7 +89,11 @@ namespace log4net_loggly_console
             parent.Children = new List<Person> { child1, child2 };
             log.Info(parent);
 
-            log.Debug("zzzz");
+            log.Debug(@"This
+is
+some
+multiline
+log");
             log.InfoFormat("Loggly is the best {0} to collect Logs.", "service");
             log.Info(new { type1 = "newcustomtype", value1 = "newcustomvalue" });
             log.Info(new TestObject());

@@ -13,7 +13,7 @@ namespace log4net_loggly.UnitTests
     {
         private MemoryStream _messageStream;
         private string _usedUrl;
-        private Mock<WebRequest> _webRequestMock;
+        private readonly Mock<WebRequest> _webRequestMock;
 
         public LogglyClientTest()
         {
@@ -36,24 +36,21 @@ namespace log4net_loggly.UnitTests
             };
         }
 
-        [Theory]
-        [InlineData(SendMode.Single, "inputs")]
-        [InlineData(SendMode.Bulk, "bulk")]
-        public void SendsToProperUrlBasedOnMode(SendMode mode, string expectedPath)
+        [Fact]
+        public void SendsToProperUrl()
         {
             var config = new Config
             {
                 RootUrl = "https://logs01.loggly.test",
                 CustomerToken = "customer-token",
                 Tag = "tag1,tag2",
-                UserAgent = "user-agent",
-                SendMode = mode
+                UserAgent = "user-agent"
             };
             var client = new LogglyClient(config);
 
             client.Send(new[] { "test message" }, 1);
 
-            _usedUrl.Should().Be($"https://logs01.loggly.test/{expectedPath}/customer-token/tag/tag1,tag2,user-agent");
+            _usedUrl.Should().Be($"https://logs01.loggly.test/bulk/customer-token/tag/tag1,tag2,user-agent");
         }
 
         [Fact]

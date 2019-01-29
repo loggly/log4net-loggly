@@ -35,7 +35,7 @@ namespace log4net.loggly
             _messages.Enqueue(message);
 
             // initiate send if sending one by one or if there is already enough messages for batch
-            if (_config.SendMode == SendMode.Single || _messages.Count >= _config.BufferSize)
+            if (_messages.Count >= _config.BufferSize)
             {
                 _readyToSendEvent.Set();
             }
@@ -70,37 +70,6 @@ namespace log4net.loggly
         }
 
         private void DoSend()
-        {
-            if (_config.SendMode == SendMode.Single)
-            {
-                DoSendSingle();
-            }
-            else
-            {
-                DoSendBulks();
-            }
-        }
-
-        private void DoSendSingle()
-        {
-            // WaitAny returns index of completed task or WaitTimeout value (number) in case of timeout.
-            // We want to continue unless _stopEvent was set, so unless returned value is 0 - index of _stopEvent
-            var handles = new WaitHandle[] {_stopEvent, _readyToSendEvent, _flushingEvent};
-
-            while (WaitHandle.WaitAny(handles, _config.SendInterval) != 0)
-            {
-                // consume all we can
-                _sendInProgress = true;
-                while (_messages.TryDequeue(out var message))
-                {
-                    _client.Send(message);
-                }
-                _sendInProgress = false;
-                _readyToSendEvent.Reset();
-            }
-        }
-
-        private void DoSendBulks()
         {
             var sendBuffer = new string[_config.BufferSize];
 
