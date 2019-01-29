@@ -79,7 +79,6 @@ namespace log4net.loggly
             var handles = new WaitHandle[] { _stopEvent, _readyToSendEvent, _flushingEvent };
 
             int triggeredBy;
-            int bulkSize = 0;
             while ((triggeredBy = WaitHandle.WaitAny(handles, _config.SendInterval)) != 0)
             {
                 // allow sending partial buffer only when it was triggered by timeout or flush
@@ -91,6 +90,7 @@ namespace log4net.loggly
 
                 _sendInProgress = true;
                 int sendBufferIndex = 0;
+                int bulkSize = 0;
                 while (sendBufferIndex < sendBuffer.Length 
                     && _messages.TryPeek(out var message)
                     && bulkSize + message.Length <= _config.MaxBulkSizeBytes)

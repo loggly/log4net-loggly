@@ -239,6 +239,42 @@ namespace log4net_loggly.UnitTests
             }, "correct messages should be sent");
         }
 
+        [Fact]
+        public void NextBulkSizeLimitationStartsFromZero()
+        {
+            // message of 10 bytes, buffer for 10 messages = 100 bytes
+            // max bulk size se to 30 -> bulk size should be limited by this number
+            _config.MaxBulkSizeBytes = 30;
+            _config.BufferSize = 10;
+            var oneMessageSize = 10;
+            var oneMessage = new String('x', oneMessageSize);
+
+            ExpectSends(3);
+
+            var buffer = new LogglyAsyncBuffer(_config, _clientMock.Object);
+
+            // +7 messages so that 3 bulks by 3 messages are sent before number of messages goes below buffer size
+            for (int i = 0; i < _config.BufferSize + 7; i++)
+            {
+                buffer.BufferForSend(oneMessage);
+            }
+
+            _allSentEvent.Wait(MaxWaitTime).Should().BeTrue("messages should be sent");
+
+            _sentMessages.Should().BeEquivalentTo(new[]
+            {
+                oneMessage,
+                oneMessage,
+                oneMessage,
+                oneMessage,
+                oneMessage,
+                oneMessage,
+                oneMessage,
+                oneMessage,
+                oneMessage,
+            }, "correct messages should be sent");
+        }
+
         private void ExpectSends(int numberOfSends)
         {
             _allSentEvent = new CountdownEvent(numberOfSends);
