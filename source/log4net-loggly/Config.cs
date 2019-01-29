@@ -17,7 +17,7 @@ namespace log4net.loggly
             LogicalThreadContextKeys = null;
             GlobalContextKeys = null;
             BufferSize = 500;
-            NumberOfInnerExceptions = 1;
+            NumberOfInnerExceptions = 4;
             SendInterval = TimeSpan.FromSeconds(5);
             MaxLogQueueSize = 0; // unlimited
             FinalFlushWaitTime = TimeSpan.FromSeconds(3);
