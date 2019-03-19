@@ -78,7 +78,7 @@ logger.Debug(new { Property = "This is anonymous object", Property2 = "with two 
 
 ## Flushing logs on application shutdown
 
-Library is buffering and sending log messages to Loggly asynchronously in background. That means that some logs may be still in buffer when the application terminates. To make sure that all logs have been sent you need to cleanly shutdown log4net logger using following code:
+Library is buffering and sending log messages to Loggly asynchronously in the background. That means that some logs may be still in buffer when the application terminates. To make sure that all logs have been sent you need to cleanly shutdown log4net logger using the following code:
 ```csharp
 logger.Logger.Repository.Shutdown();
 ```
