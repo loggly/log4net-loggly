@@ -83,6 +83,7 @@ namespace log4net.loggly
                 loggingInfo,
                 new JsonSerializerSettings
                 {
+                    Formatting = Formatting.None,
                     ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
                 });
         }
