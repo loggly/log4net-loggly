@@ -4,7 +4,7 @@
     <DebugType>full</DebugType>
     <TargetFrameworks>netstandard2.0;net40</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>9.0.1</Version>
+    <Version>9.0.2</Version>
     <Authors>Loggly</Authors>
     <Company>Loggly</Company>
     <PackageLicenseUrl>http://opensource.org/licenses/MIT</PackageLicenseUrl>
@@ -23,8 +23,8 @@
     <Copyright>Copyright 2019</Copyright>
     <PackageTags>Loggly-log4net log4net appender logs</PackageTags>
     <RootNamespace>log4net.loggly</RootNamespace>
-    <AssemblyVersion>9.0.0.1</AssemblyVersion>
-    <FileVersion>9.0.0.1</FileVersion>
+    <AssemblyVersion>9.0.0.2</AssemblyVersion>
+    <FileVersion>9.0.0.2</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
