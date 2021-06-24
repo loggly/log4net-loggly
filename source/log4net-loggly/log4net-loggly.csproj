@@ -4,7 +4,7 @@
     <DebugType>full</DebugType>
     <TargetFrameworks>netstandard2.0;net40</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>9.0.0</Version>
+    <Version>9.0.3</Version>
     <Authors>Loggly</Authors>
     <Company>Loggly</Company>
     <PackageLicenseUrl>http://opensource.org/licenses/MIT</PackageLicenseUrl>
@@ -14,7 +14,7 @@
     <PackageReleaseNotes>
       - Fixed serialization of logged objects. They are now again serialized as full JSON instead of their .NET type name.
       - Fixed issue when logicalThreadContextKeys and globalContextKeys were ignored if &lt;layout&gt; definition was used.
-      - Fixed priority of GlobalContext, ThreadContext, LogicalThreadContext and EventContext properties. It was in reverse order than it should be. Correct priority from highest to lowest is EventContext -> LogicalThreadContext -> ThreadContext -> GlobalContext
+      - Fixed priority of GlobalContext, ThreadContext, LogicalThreadContext and EventContext properties. It was in reverse order than it should be. Correct priority from highest to lowest is EventContext -&gt; LogicalThreadContext -&gt; ThreadContext -&gt; GlobalContext
       - Removed option to use Loggly /inputs HTTP endpoint. All logs are sent via /bulk endpoint.
       - Changed inner exception property names. Previously the exception properties were named "exceptionType, exceptionMessage" etc. but inner exception properties were "innerExceptionType, innerExceptionMessage" etc. This was unified and inner exception properties are now also named "exceptionType, exceptionMessage" etc.
       - Changed default number of inner exceptions that are sent in log from 1 to 4.
@@ -23,6 +23,8 @@
     <Copyright>Copyright 2019</Copyright>
     <PackageTags>Loggly-log4net log4net appender logs</PackageTags>
     <RootNamespace>log4net.loggly</RootNamespace>
+    <AssemblyVersion>9.0.0.3</AssemblyVersion>
+    <FileVersion>9.0.0.3</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

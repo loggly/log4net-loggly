@@ -32,17 +32,20 @@ namespace log4net.loggly
                     SendToLoggly(message);
                     break;
                 }
-                catch (WebException e)
+                catch (Exception e)
                 {
-                    var response = (HttpWebResponse)e.Response;
-                    if (response != null && response.StatusCode == HttpStatusCode.Forbidden)
+                    if (e is WebException)
                     {
-                        _isTokenValid = false;
-                        ErrorReporter.ReportError($"LogglyClient: Provided Loggly customer token '{_config.CustomerToken}' is invalid. No logs will be sent to Loggly.");
-                    }
-                    else
-                    {
-                        ErrorReporter.ReportError($"LogglyClient: Error sending logs to Loggly: {e.Message}");
+                        var response = ((WebException)e).Response as HttpWebResponse;
+                        if (response != null && response.StatusCode == HttpStatusCode.Forbidden)
+                        {
+                            _isTokenValid = false;
+                            ErrorReporter.ReportError($"LogglyClient: Provided Loggly customer token '{_config.CustomerToken}' is invalid. No logs will be sent to Loggly.");
+                        }
+                        else
+                        {
+                            ErrorReporter.ReportError($"LogglyClient: Error sending logs to Loggly: {e.Message}");
+                        }
                     }
 
                     currentRetry++;

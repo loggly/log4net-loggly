@@ -93,6 +93,24 @@ namespace log4net_loggly.UnitTests
         }
 
         [Fact]
+        public void RetriesSendWhenSystemErrorOccurs()
+        {
+            _webRequestMock.Setup(x => x.GetResponse())
+                .Throws(new OperationCanceledException("The operation was canceled."));
+
+            var config = new Config
+            {
+                MaxSendRetries = 3
+            };
+            var client = new LogglyClient(config);
+
+            client.Send(new[] { "test message" }, 1);
+
+            _webRequestMock.Verify(x => x.GetResponse(), Times.Exactly(config.MaxSendRetries + 1),
+                "Generic system error should be retried");
+        }
+
+        [Fact]
         public void SendsCorrectData()
         {
             var client = new LogglyClient(new Config());
